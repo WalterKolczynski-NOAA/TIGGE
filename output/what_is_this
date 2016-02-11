@@ -1,0 +1,4 @@
+The base directory where ncdcTigge puts its output files.
+There should be a sub-directory called [archive] that will 
+retain completed packages for distribution.
+Advised to sym.link this to a device with lots of free space.

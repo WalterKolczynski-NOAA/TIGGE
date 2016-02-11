@@ -1,0 +1,33 @@
+
+A perl script is executed via cron that calls an ECMWF GRIB API tool called "grib_convert".  "grib_convert" is run on all of the required native NCEP GRIB-2 fields/files using a configuration file that includes the text found at the end of this email.  "grib_convert" modifies the GRIB-2 headers and parameter encodings so that they conform to the TIGGE standards.
+
+After this, the script runs the ECMWF GRIB API "grib_split" tool on all fields to split them into separate GRIB-2 messages where needed, and write all of the messages out
+
+with the proper file naming convention.  I think Dan is familiar with the ECMWF GRIB API and its associated tools found in the "tigge" subdirectory.
+
+In addition to the above steps, scripts are called to verify that all expected fields are available prior to being run through "grib_convert", and 
+all expected fields are present after running "grib_split", before submitting them to the ldm server to be distributed to ECMWF.  If you put all of the fields in a
+tar file as you do know for the partial NCEP data processing, I'm guessing ECMWF would be willing to grab those.
+
+Doug
+
+
+
+Dan, (concerning output QC)
+
+The number I have is 77784 (not including tp, which is computed by ncdc).
+TP is included in the native NCEP files (6 hour total accumulated precip) so
+that might be showing up in your total.  Also, most of the parameters have a
+fields at time step=0, so there are actually 65 time steps for those. "orog"
+is only counted at time step=0, and fields such as mx2t6 and mn2t6 don't have
+fields at timestep=0.
+
+The inventory template I use to check NCEP cycle completeness is attached.
+The columns include:
+ensembletype,leveltype,forecasthour,ensemblenumber,levelvalue,tiggeparameter,productiontype
+
+Doug
+Attachments area
+Preview attachment ncepcurinvnotp.txt
+[Text]
+

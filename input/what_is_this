@@ -1,0 +1,3 @@
+should contain per-cycle directories of GENS (GFS global ensemble)
+Grid 003 named [yyyymmddhh].   Advised to change this directory to
+a symbolic link pointing to the temporary data store.
