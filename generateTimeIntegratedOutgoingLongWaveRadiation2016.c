@@ -41,7 +41,7 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 	// for each forecast  hour.
 	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
 
-printf("\nDEBUG : fct = %i\n",fff);
+// printf("\nDEBUG : fct = %i\n",fff);
 		
 	        // populate tmEnd with forecast time offset, add to initial time 
 	        tmEnd.yr = 0;
