@@ -1,0 +1,47 @@
+THORPEX Interactive/International Grand Global Ensemble:
+
+Deployment package.
+
+This program consists of two parts:
+1)  C-Code that used ECMWF GRIB API to calculate new data sections and update headers in GRIB data needed for TIGGE.  Produces 15015 grib records per cycle.
+
+2) Inherited code from NCAR that runs ECMWF GRIB_API tools to convert headers-only.   Produces approx. 80000 Grib records per cycle.
+
+Install process:
+Not as automatic as it could be.  But this will do the job.
+
+1#  git clone this distribution.
+2#  cd into it.
+3#  export the bashrc file that resides here.
+4#  export the following enviornment (REQUIRED)
+	export TIGGE_TOOLS="<the pwd>"
+	export PERL5LIB="<path to local perl libs>"
+		The main perl module that runs the utility programs is placed in here.
+5#  Tell the makefile where to find Jasper. (if non-standard)
+	export LIBS="DIR path to jasper.a /lib set"
+	export INC="DIR path to jasper.h /include set"
+	o  If step #7 fails, you probably missed something here.
+6#  cd src
+7#  run [make]
+	This will unpack the ECMWF GRIB-API, that is pre-compiled to CentOS6
+	and proceed to use it to build the c code package.
+	If there are make erorrs. You may need to clean, configure, and re-compile the ECMWF GRIB API that was placed in (../grib-api)
+	ensure the binary ./ncdcTigge was actually created.
+8#  Install, run [make install]
+	This will slide everything necessary into $TIGGE_TOOLS/bin
+9#  cd ../bin
+10# Gather a cycle TIGGE_INPUT/<yyyymmddhh> of GENS files and test the distribution.
+	perl runQcInput <yyyymmddhh> >&./rqi.log 
+        ncdcTigge <yyyymmddhh> all
+	perl runQcOutput.pl <yyyymmddhh>
+	perl run_ncep_convert.pl <yyyymmddhh> >&./rnc.log
+        perl runQcInput <yyyymmddhh>
+	perl finalize.pl <yyyymmddhh>
+
+	If you get PERL module errors.  Ensure ncdcTigge.pm is in your PERL5LIB path.
+	And use CPAN to install any further dependancies.
+
+	Of course, ensure each step exits cleanly before proceeding to next.
+        perl runQcInput <yyyymmddhh>
+
+-Dan Swank (Apr.2016)
