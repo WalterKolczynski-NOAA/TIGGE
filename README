@@ -1,16 +1,40 @@
 THORPEX Interactive/International Grand Global Ensemble:
+=
 
-Deployment package.
+NCEI Repository:
 
-This program consists of two parts:
+* git clone git@git.ncdc.noaa.gov:nomads/TIGGE.git
+
+
+Deployment, Use, and set up
+=
+Deployment is an entirely manual process.
+Thus it requires a human, preferably familiar with C gnu-make PERL and Crontab.
+
+This program consists of two major parts:
 1)  C-Code that used ECMWF GRIB API to calculate new data sections and update headers in GRIB data needed for TIGGE.  Produces 15015 grib records per cycle.
 
 2) Inherited code from NCAR that runs ECMWF GRIB_API tools to convert headers-only.   Produces approx. 80000 Grib records per cycle.
 
+There are numerous PERL wrappers and a module that orchestrate dataflow 
+  and aforementioned major components.
+
+Dependancies:
+This is a largely self-contained package.  It needs a few common things:
+* gcc & make
+* perl
+* ECMWF GRIB API (CentOS6 version is included)
+*	https://software.ecmwf.int/wiki/display/GRIB/Home
+* Input data from ftpprd.ncep.noaa.gov   and/or NCEI Archive.
+* 	ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gens/prod/
+* 	If this data source dies, this program is useless until rewired to the new source.
+
+
 Install process:
+
 Not as automatic as it could be.  But this will do the job.
 
-1#  git clone this distribution.
+1#  git clone this distribution. (URL is above)
 2#  cd into it.
 3#  export the bashrc file that resides here.
 4#  export the following enviornment (REQUIRED)
@@ -31,17 +55,125 @@ Not as automatic as it could be.  But this will do the job.
 	This will slide everything necessary into $TIGGE_TOOLS/bin
 9#  cd ../bin
 10# Gather a cycle TIGGE_INPUT/<yyyymmddhh> of GENS files and test the distribution.
+	Reference cron jobs below for help.
+
 	perl runQcInput <yyyymmddhh> >&./rqi.log 
         ncdcTigge <yyyymmddhh> all
 	perl runQcOutput.pl <yyyymmddhh>
 	perl run_ncep_convert.pl <yyyymmddhh> >&./rnc.log
-        perl runQcInput <yyyymmddhh>
 	perl finalize.pl <yyyymmddhh>
 
 	If you get PERL module errors.  Ensure ncdcTigge.pm is in your PERL5LIB path.
 	And use CPAN to install any further dependancies.
+	Do internet search if not familiar with CPAN.
 
 	Of course, ensure each step exits cleanly before proceeding to next.
-        perl runQcInput <yyyymmddhh>
+	The PERL wrappers are generally easy to tell.   The binary ncdcTigge requires 
+	  should be checked with runQcOutput.pl <yyyymmddhh>
 
 -Dan Swank (Apr.2016)
+
+
+Automation:  crontab
+
+List of cron jobs to set up:
+
+The launcher scripts are held in REPO/cron and may be moved, just alter
+   the crontab execution path to match.
+Yeah, its C Shell.. they are not complicated - Just print text & system calls.
+If you use them, must also set your $HOME/.cshrc to include the essential
+    ENV vars mentioned in the set up section or they will NOT work,
+-
+[timings] $HOME/crontab/launch_tigge.csh 3  1>$HOME/crontab/logs/launch_tigge.log 2>&1
+[timings] $HOME/crontab/launch_tigge.csh -8 1>$HOME/crontab/logs/launch_tigge.log 2>&1
+[timings] $HOME/crontab/launch_tigge_ftp.csh 1>$HOME/crontab/logs/launch_tigge_ftp.log 2>&1
+[timings] $HOME/crontab/launch_tigge_Recover.csh 1>$HOME/crontab/logs/launch_tigge_Recover.log 2>&1
+[timings] $HOME/crontab/launch_tigge_Check.csh >$HOME/crontab/logs/tiggeRunCheck.log 2>&1
+-
+[timings] represent the five unit cron timing specifications.
+Reference the cron daemon manual (man cron ? ) for details.
+
+The first two jobs run the processor, the first runs 3 of the newest cycles, and
+the second one runs eight of the oldest cycles (as a catch-up).  Systems vary, but its recommended
+to run the first one as often as it takes for one cycle to finish.
+The catch-up job should be run nightly at low-load times.  
+The numbers 3 & -8 represent number of days to process, and are freely adjustable.
+
+The third job obtains input data and should be run roughly 1-3 hourly.
+
+The fourth job is an input data recovery job.   It looks back a week checking files 
+   and automatically re-downloading missing inputs.   Should be run once a day at lest.
+   This will NOT replace corrupted files!  only checks existance.
+
+The fifth job is a e-mail notification for incomplete cycles.
+   See more about that on Monitoring section below.
+
+
+Monitoring:
+=
+
+Primary monitoring is done by e-mail.   The fifth cron job above launches a PERL program that
+scans the $TIGGE_OUTPUT/archive for the expected series of 6-hourly *kwbc*.tar units.
+It will check from the current date/time to the last file matching the pattern in the directory.  
+If none are present, nothing will happen.
+There needs to be at least one completed cycle, 
+thus one may want to belay turning this cron job on until 
+the automatic process is fully set up and churning out completed cycles.
+
+A cycle will verify OK if the tar package is present and meets a minimum file byte size 
+  ecified within the monitor script.  Currently this is around 4.5 GB.
+  Monitoring script does nothing more then this.
+
+E-mails should be sent to a group address.
+
+This currently (Sept.2017) is: 
+
+* To:   ncdc.nomadsmonitoring@noaa.gov
+* Subj: [NCDC-TIGGE ./runCheck.pl] TIGGE run report
+
+
+Fixing problems:
+=
+
+There is no rigid-methodical proceedure for doing this.
+
+The general way, starts by noticing that a cycle has gone uncompleted for over 24 hours.
+Monitoring staff need to glance over the monitoring e-mail daily.
+Cycles ealier then this may still be running.
+
+There are three major reasons cycles will fail:
+
+1# Damaged or Missing Input data
+2# Input data provider made a non-trivial change to the input data, that is
+   tripping out the Input or Output quality control routines.
+3# Full Disk
+
+So --
+
+cd to $TIGGE_TOOLS/bin and run perl ./runQcInput <yyyymmddhh>.
+Don't watch it, come back in 15 mins and see if it passed or failed.
+Most likely, it found 1 or several bad files.
+If so -- rm these files then run ./runRecoverInput.pl to recover fresh copies.
+Rerun ./runQcInput.pl -- If it succeeds, the next automatic run will take care of it.
+If it does not... There are larger problems... perhaps #2 or #3 listed above.
+Read the logs produced by the cron jobs... and good luck.  If its not #1-3 above, your
+heading into - read the source code - territory.
+
+Check the NWS TINS for any change notices to the input files.
+(internet search - NWS TIN ensemble )
+
+Unfortunately & Occassionally, 
+ input file producer change will be made that will require an update to the 
+ ECMWF GRIB API and even source code changes.  Call your local C programmer
+ and pay them well..
+
+This program sequence produces about 80000 files for one cycle.
+Ensuring its all correct is very tedious.  Hope the output check
+routines do it right.
+
+If an output cycle is missed and goes beyond the 7 day window for retaining input data...
+One can use manual-sequencer1 and 2 PERL scripts in /bin to rerun old cycles.  You will need to
+  reobtain  the input data by any means necessary and check the first few lines of the PERL
+ scripts on how to run them.
+DO NOT put rerun input data into the standard $TIGGE_INPUT directory area!  
+Or it will probably get immediately deleted by the standard cron'ed purger.
