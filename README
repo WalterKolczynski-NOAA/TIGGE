@@ -1,33 +1,56 @@
 THORPEX Interactive/International Grand Global Ensemble:
-=
 
-NCEI Repository:
+
+	NCEP-NCDC component.
+	Documentation
+	September 2017
+	Doc Author: Dan Swank (Apr.2016)   Revamp (Sept.2017)
+
+
+=========================================================
+
+NCEI Repository:   (your probably already in it)
 
 * git clone git@git.ncdc.noaa.gov:nomads/TIGGE.git
+
+* svn checkout https://conman.ncdc.noaa.gov/svn-repos/nomads/TIGGE/
+	! Subversion repository retired to GIT in Aug.2017.
+	! for historic reference only -- Do not commit.
 
 
 Deployment, Use, and set up
 =
-Deployment is an entirely manual process.
+Deployment is a manual process with some parts automated.
 Thus it requires a human, preferably familiar with C gnu-make PERL and Crontab.
 
 This program consists of two major parts:
-1)  C-Code that used ECMWF GRIB API to calculate new data sections and update headers in GRIB data needed for TIGGE.  Produces 15015 grib records per cycle.
+1)  C-Code that builds with ECMWF GRIB API to calculate new data sections and updates GRIB2 headers.
+	Produces 15015 grib records per cycle.
 
-2) Inherited code from NCAR that runs ECMWF GRIB_API tools to convert headers-only.   Produces approx. 80000 Grib records per cycle.
+2) Inherited code from NCAR that runs ECMWF GRIB_API tools that 
+	alter GRIB2 headers to conform to TIGGE requirements.
+	Produce approximately 80000 Grib2 records per cycle.
+
+ As of September 2017, this is a 5.1 GB tar package.
 
 There are numerous PERL wrappers and a module that orchestrate dataflow 
   and aforementioned major components.
 
+
+
 Dependancies:
+
 This is a largely self-contained package.  It needs a few common things:
 * gcc & make
 * perl
-* ECMWF GRIB API (CentOS6 version is included)
+* ECMWF GRIB API (pre-compiled CentOS 5&6 version is included in repo)
 *	https://software.ecmwf.int/wiki/display/GRIB/Home
 * Input data from ftpprd.ncep.noaa.gov   and/or NCEI Archive.
-* 	ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gens/prod/
+	Storage: (~32 GB per held cycle / 900 GB per week recommended retention)
+* 	Source: ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gens/prod/
+*	Backup Source : NCEI DSI 6177_06.  too much latency to prefer over the NCEP source.
 * 	If this data source dies, this program is useless until rewired to the new source.
+
 
 
 Install process:
@@ -71,7 +94,15 @@ Not as automatic as it could be.  But this will do the job.
 	The PERL wrappers are generally easy to tell.   The binary ncdcTigge requires 
 	  should be checked with runQcOutput.pl <yyyymmddhh>
 
--Dan Swank (Apr.2016)
+
+
+Delivery to ECMWF:
+
+ The end goal of this project is to provide the NCEP component of the THORPEX Grand 
+   Global Ensemble to the master archive maintained by and at ECMWF.
+ Their status site is here:
+
+ Delivery % is in the upper 90% per year - meaning a few missed cycles are OK.
 
 
 Automation:  crontab
@@ -80,7 +111,7 @@ List of cron jobs to set up:
 
 The launcher scripts are held in REPO/cron and may be moved, just alter
    the crontab execution path to match.
-Yeah, its C Shell.. they are not complicated - Just print text & system calls.
+Meep, its C Shell.. get over it - its just echo text & system calls.
 If you use them, must also set your $HOME/.cshrc to include the essential
     ENV vars mentioned in the set up section or they will NOT work,
 -
@@ -107,6 +138,11 @@ The fourth job is an input data recovery job.   It looks back a week checking fi
 
 The fifth job is a e-mail notification for incomplete cycles.
    See more about that on Monitoring section below.
+
+Finally, due to system & network oddities, another cron job on another machine had
+   to be used to cp the completeda *kwbc*.tar files to a properly exposed delivery directory.
+   This is a one line scp call using authorized keys.
+   This is actually good, as it separates the delivery directory and production directory.
 
 
 Monitoring:
