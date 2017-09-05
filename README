@@ -100,9 +100,22 @@ Delivery to ECMWF:
 
  The end goal of this project is to provide the NCEP component of the THORPEX Grand 
    Global Ensemble to the master archive maintained by and at ECMWF.
- Their status site is here:
+ Links:
+	master archive status * http://apps.ecmwf.int/datasets/tigge
+	master archive access * http://apps.ecmwf.int/datasets/data/tigge/levtype=sfc/type=cf/
 
  Delivery % is in the upper 90% per year - meaning a few missed cycles are OK.
+
+ Currently the transfer is done through NOMADS FTP site.
+
+ The ECMWF Master archive is the only entity that needs the output data, so IP restrictions can 
+   be implemented but thats not really needed as the data is rather harmless
+   should someone randomly discover the directory.
+
+ECMWF Contact (general):   manuel.fuentes@ecmwf.int
+ECMWF Contact (technical): ioannis.mallas@ecmwf.int
+ECMWF Contact (?):         richard.mladek@ecmwf.int
+
 
 
 Automation:  crontab
