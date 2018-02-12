@@ -53,6 +53,31 @@ This is a largely self-contained package.  It needs a few common things:
 
 
 
+Critical ENV VARS:
+
+TIGGE_TOOLS
+	Set this to the base deployment directory, it usually ends in /tigge.  Not the /bin
+TIGGE_OUTPUT
+	Structure where programs write output.
+	The directory may be and should be a symbolic link.
+	Recommended storage device hosting TIGGE_OUTPUT should be at least 1 terabyte capacity.
+TIGGE_INPUT
+	Point to the directory structure containing input data.
+	Recommended storage is 1 terabyte per seven days of input you wish to retain.
+	The more cycles kept here, the easier it is to correct real-time problems 
+		before they become manual recall proceedures.
+	Recommend no less then three days.
+GRIB_DEFINITION_PATH
+	Always = $TIGGE_TOOLS/grib-api/share/grib_api/definitions
+GRIB_SAMPLES_PATH
+	Always: $TIGGE_TOOLS/grib-api/share/grib_api/samples
+	These two are needed for GRIB_API binaries to find their assets.
+export PERL5LIB
+	Point this to the directory containing PERL libaries found in this distribution. 
+		(perl-tigge.tar.bz2)
+
+
+
 Install process:
 
 Not as automatic as it could be.  But this will do the job.
@@ -224,5 +249,17 @@ If an output cycle is missed and goes beyond the 7 day window for retaining inpu
 One can use manual-sequencer1 and 2 PERL scripts in /bin to rerun old cycles.  You will need to
   reobtain  the input data by any means necessary and check the first few lines of the PERL
  scripts on how to run them.
-DO NOT put rerun input data into the standard $TIGGE_INPUT directory area!  
+Create yourself an isolated Manual/Development area.
+Branch your .bashrc to match the directories in the development area and source it whenever you
+   need to go manual.
+DO NOT put rerun input data into the standard $TIGGE_INPUT directory area!
 Or it will probably get immediately deleted by the standard cron'ed purger.
+
+
+
+Misc notes:
+
+* Cycles to run are determined by the existance of a directories in TIGGE_INPUT/yyyymmddhh
+* Runs are deemed completed using a flag file:  TIGGE_INPUT/yyyymmddhh/.complete
+	removing this will trigger a rerun.
+* The input and output QC routines also keep a flag file that needs to be removed to rerun the QC.
