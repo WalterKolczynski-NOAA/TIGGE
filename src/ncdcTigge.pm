@@ -9,14 +9,23 @@ require Exporter;
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => 	[
-   qw( %RequiredVariablesA %RequiredVariablesB &cleanupLocation &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle ) 
+   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle ) 
 								] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = "1.3";
+our $VERSION = "1.4";
+our $REVISION_DATE = "20180213";
 
 # Preloaded methods go here.
+
+        # Important! sets the location where ECMWF GRIB API executables can be found
+our $GRIB_API_BIN = "$ENV{TIGGE_TOOLS}/grib-api/bin";
+if(  ( !(-d ${ncdcTigge::GRIB_API_BIN}) || !(-r ${ncdcTigge::GRIB_API_BIN}) || !(-l ${ncdcTigge::GRIB_API_BIN}) ) &&  (-d "$ENV{TIGGE_TOOLS}/../grib-api/bin") )
+        {  $ncdcTigge::GRIB_API_BIN = "$ENV{TIGGE_TOOLS}/../grib-api/bin";  }
+print STDOUT "    GRIB_API_BIN is [$ncdcTigge::GRIB_API_BIN]\n";
+
+
 
 sub BEGIN 
 {
@@ -24,8 +33,7 @@ print STDOUT "\n ** Using ncdcTigge PERL Module ** \n";
 $ncdcTigge::startTime = time;
 }
 
-	# Important! sets the location where ECMWF GRIB API executables can be found
-our $GRIB_API_BIN = "$ENV{TIGGE_TOOLS}/grib-api/bin";
+# our $GRIB_API_BIN = "$ENV{TIGGE_TOOLS}/grib-api/bin";
 
 	# PACKAGE LEVEL "Public" (our scope) VARIABLES / CONSTANTS
 our $ENS_MEMBERS    = 20;		# Maximum number of members
@@ -271,7 +279,7 @@ undef my @messages;               # information to return
 undef my %RecsPerFctHr;
     # Keep track of records for each forecast hour (should only be 1 fcthr)
 
-my @rtn2 = (`/bin/ls $ENV{home}`);
+# my @rtn2 = (`/bin/ls $ENV{home}`);
 
         # Inport module level QC Settings
 my $CENTER 			= $ncdcTigge::qcCenterCode;
@@ -363,7 +371,7 @@ undef my @fileData;
 if( $#rtn == -1 ) 
 	{
 	print STDERR "Somethings wrong, command GRIB_LS returned nothing.
-$GRIB_LS -p $gribLsKeysString $inFile\n\n[@rtn2]\n\n";
+$GRIB_LS -p $gribLsKeysString $inFile\n\n[rtn2]\n\n";
 
 #	print STDOUT (`$GRIB_LS -p $gribLsKeysString $inFile`);
 	print STDOUT "\nSYSOUT : " . system "${ncdcTigge::GRIB_API_BIN}/grib_ls";
@@ -746,6 +754,8 @@ my $numVars = $#ncdcTigge::tiggeVarCodes + 1;
 my $expectedVarCount = ($ncdcTigge::ENS_MEMBERS+1) * ($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC +1);
 my $expectedCycleCount = $expectedVarCount * $numVars;
 
+
+print STDOUT " * Scanning dir; [$ENV{'TIGGE_OUTPUT'}] \n";
 opendir(OUTDIR,$ENV{'TIGGE_OUTPUT'}) || 
 	return("FAIL","$headline : Couldn't open $ENV{'TIGGE_OUTPUT'} \n");
 my @fileList = sort grep(/\.grib$/,readdir(OUTDIR));
@@ -974,12 +984,11 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
 		# This is the header conversion portion that NCAR used to do.
 		# it is a standalone process -- for now.
     print STDOUT (`perl $ENV{'TIGGE_TOOLS'}/bin/run_ncep_convert.pl $uncompletedRuns[$r] `);
-
-    print STDOUT (" $ENV{'TIGGE_TOOLS'}/bin/ncdcTigge $uncompletedRuns[$r] all
+    print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $uncompletedRuns[$r] all
 	Is currently running\n\n");
-	chdir("$ENV{'TIGGE_TOOLS'}/bin") || 
-		print STDOUT "### $headline chdir($ENV{'TIGGE_TOOLS'}/bin) failed!\n\n";
-    my @execute = (`ncdcTigge $uncompletedRuns[$r] all`);
+	chdir("$ENV{TIGGE_TOOLS}") || 
+		print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
+    my @execute = (`./bin/ncdcTigge $uncompletedRuns[$r] all`);
 
     print STDOUT ("  Processor Finished.\n\n".localtime(time)."\n\noutput:\n");
     print STDOUT join("\n",@execute)."\n\n";
@@ -1146,12 +1155,12 @@ foreach my $file ( @allFiles )
 
 	my @inStat = stat($sourcePath);
 	my $srcSize = $inStat[7];
-	open(IN,"<",$sourcePath) || return("### $headline Could not read directory:  $sourcePath\n");
-	binmode(IN);
-	my $verif = read(IN,$bufferData,$srcSize);
-	close(IN);
+	open( INSRC, "<", $sourcePath) || return("### $headline Could not read directory:  $sourcePath\n");
+	binmode( INSRC );
+	my $verif = read( INSRC, $bufferData, $srcSize );
+	close( INSRC );
 
-	open(OUT,">",$destPath);
+	open( OUT, ">", $destPath );
 	binmode(OUT);
 	print OUT $bufferData;
 	close(OUT);
@@ -1302,12 +1311,14 @@ close(STS);
 if( scalar grep(/^DATA_PACKAGED_SUCCESSFULLY/,@statusInfo) ) 
 	{ return("$headline Cycle has already packaged.\n"); }
 
-chdir($archiveDir);
-print STDOUT "$headline Tarring directory...\n";
-opendir(DIR,$archiveTargetDir);
+chdir( $archiveTargetDir );
+print STDOUT "$headline in $archiveTargetDir Tarring files into $archiveDir...\n";
+opendir( DIR,$archiveTargetDir );
 closedir(DIR);
 
-my @tarRtn =  (`tar --exclude=*gens-ncdc*.grb2 --exclude=*.tar.gz --exclude=*OUTPUT.QC* -cf $tarzFile1 ./$cycle/`);
+ncdcTigge::mergeRecords( $archiveTargetDir, $archiveTargetDir, $cycle );
+
+my @tarRtn =  (`tar --exclude=*gens-ncdc*.grb2 --exclude=*.tar.gz --exclude=*OUTPUT.QC* -cf $tarzFile1 *`);
 
 print STDOUT "Merging into master archive: $masterArchive\n\n";
 print STDOUT (`tar --concatenate --file=$masterArchive $tarzFile1 `);
@@ -1323,12 +1334,15 @@ print STDOUT "ncdcTigge::mergeCycleMembers Call returned:\n@rtn\n\n";
 
 print STDOUT "$headline Creating Tar file for NCDC Archive...\n\n";
 chdir($archiveTargetDir);
-my @tarRtn2 =  (`tar -czf $tarzFile2 ./gens-ncdc*.grb2`);
-if( @tarRtn2 )
-    {
-    print STDOUT "$headline Returned @tarRtn\n\n";
-    return("### $headline  Returned from tar\#2:  @tarRtn2\n\n");
-    }
+
+# Originally intended to produce archive output for NCDC archive... it does not need to be done...
+# my @tarRtn2 =  (`tar -czf $tarzFile2 ./gens-ncdc*.grb2`);
+#if( @tarRtn2 )
+#    {
+#    print STDOUT "$headline Returned @tarRtn\n\n";
+#    return("### $headline  Returned from tar\#2:  @tarRtn2\n\n");
+#    }
+#
 
 	# Flag the status file as sucesssfully processed
 push(@statusInfo,"\nDATA_PACKAGED_SUCCESSFULLY ".localtime(time)."\n");
@@ -1440,10 +1454,78 @@ sub ncepNomadsBackupSource($)
 	return(" ( ok $ok / not ok $notok ) recovered $recovered ");
 	}
 
-#
-#	Utility function - obtains dates from gens filenames
-#
 
+#
+#	Concatenates records into type-member conglomerates (Requested Feb.2018)
+#
+sub mergeRecords($$$)
+	{
+	my $dir = shift(@_);
+	my $dirOut = shift(@_);
+	my $cyc = shift(@_);
+	my @lvs = qw(sl pl pt pv);
+
+	if( $cyc !~ m/^\d{10}$/ )      { return(1); }
+	if( !(-d $dir) || !(-r $dir) ) 
+		{ return(2); }
+
+	if( $dirOut eq "" ) 
+		{  $dirOut = $dir;  }
+	if( !(-d $dirOut) )  { mkdir($dirOut); }
+        if( !(-d $dirOut) )  { $dirOut = $dir; }
+
+	opendir( DIR,$dir );
+	my @allFiles = sort grep(/\.grib$/,readdir(DIR));
+	closedir( DIR );
+
+#print STDOUT "||DEBUG|||  $dir $#allFiles (@allFiles)\n\n";
+	if( $#allFiles <= -1 )   { return(-16); } 
+
+	for( my $mb = 0; $mb <= 20; $mb++ )
+		{
+		foreach my $lv ( @lvs ) 
+			{
+			my $m = sprintf( "%03d",$mb );
+			my $ofn = "z_tigge_c_kwbc_${cyc}0000_glob_prod_pf_${lv}_${m}.grib";
+			my $patt = "_${lv}_\\d{4}_${m}.*\\.grib\$";
+			my @set = grep( /$patt/, @allFiles );
+			my $OUTFILE = "${dirOut}/${ofn}";
+			open( OUTF, ">>", $OUTFILE ) || return(4);
+			binmode(OUTF);
+
+			my $sizetest = 0;
+			if( -e $OUTFILE )   # outfile is being concatenated onto, so adjust.
+				{ $sizetest = (-s $OUTFILE)  }
+			foreach my $inf ( sort @set ) 
+				{
+				$sizetest += (-s "${dir}/$inf");
+				open( INF, "<", "${dir}/$inf" ) || next;
+				binmode(INF);
+				print OUTF while <INF>;
+				close(INF);
+				}
+
+			close( OUTF );
+			if( -z $OUTFILE ) 
+				{ unlink( $OUTFILE ); }
+
+			if( (-s $OUTFILE) == $sizetest ) 
+				{
+				foreach my $inf ( sort @set )
+					{ unlink( "${dir}/$inf" ); }
+				}
+			else { return(8); }		# I/O Error of some sort.
+
+			print STDOUT " $patt ($#set) $sizetest b >> $OUTFILE \n";
+			}
+		}
+	return(0);
+	}
+
+
+#
+#       Utility function - obtains dates from gens filenames
+#
 sub getDTGfromGensFileName($$)
         {
         my $result = "";
@@ -1619,6 +1701,17 @@ X)  Ships the data to an FTP server at NCAR
 		<*	array : "PASS" or "FAIL", followed by string messages
 
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        sub mergeRecords($$$)
+		Will concatenate all records in a given directory for a given cycle
+		into level-type, member conglomerates.
+
+                1->      PATH   individual file input directory
+                2->      PATH   concatenated file output directory
+                3->      String  Cycle "yyyymmddhh" to target within input directory.
+		<-	INT Return code   non-zero means the operation aborted.
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 
 =head2 EXPORT
