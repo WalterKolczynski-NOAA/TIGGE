@@ -90,8 +90,10 @@ Not as automatic as it could be.  But this will do the job.
 	export PERL5LIB="<path to local perl libs>"
 		The main perl module that runs the utility programs is placed in here.
 5#  Tell the makefile where to find Jasper. (if non-standard)
-	export LIBS="DIR path to jasper.a /lib set"
-	export INC="DIR path to jasper.h /include set"
+	export LIBS="-L<DIR path containing jasper.a>" /lib dir
+		ex.  export LIBS="-L/path/to/jasper/lib"
+	export INC="-I<DIR path containing jasper.h>" /include dir
+		ex.  export INC="-I/path/to/jasper/include"
 	o  If step #7 fails, you probably missed something here.
 6#  cd src
 7#  run [make]
@@ -103,6 +105,7 @@ Not as automatic as it could be.  But this will do the job.
 	This will slide everything necessary into $TIGGE_TOOLS/bin
 9#  cd ../bin
 10# Gather a cycle TIGGE_INPUT/<yyyymmddhh> of GENS files and test the distribution.
+	Paths to GRIB_API binaries (/bin) should be appended to your shell PATH.
 	Reference cron jobs below for help.
 
 	perl runQcInput <yyyymmddhh> >&./rqi.log 
