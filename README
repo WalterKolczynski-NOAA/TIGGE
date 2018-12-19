@@ -221,8 +221,7 @@ Cycles ealier then this may still be running.
 There are three major reasons cycles will fail:
 
 1# Damaged or Missing Input data
-2# Input data provider made a non-trivial change to the input data, that is
-   tripping out the Input or Output quality control routines.
+2# Server reboot interrupts a running cycle
 3# Full Disk
 
 So --
@@ -239,7 +238,7 @@ heading into - read the source code - territory.
 Check the NWS TINS for any change notices to the input files.
 (internet search - NWS TIN ensemble )
 
-Unfortunately & Occassionally, 
+Unfortunately & Rarely, 
  input file producer change will be made that will require an update to the 
  ECMWF GRIB API and even source code changes.  Call your local C programmer
  and pay them well..
@@ -255,9 +254,18 @@ One can use manual-sequencer1 and 2 PERL scripts in /bin to rerun old cycles.  Y
 Create yourself an isolated Manual/Development area.
 Branch your .bashrc to match the directories in the development area and source it whenever you
    need to go manual.
-DO NOT put rerun input data into the standard $TIGGE_INPUT directory area!
+Avoid placing rerun input data into the standard $TIGGE_INPUT directory area!
 Or it will probably get immediately deleted by the standard cron'ed purger.
 
+
+
+In case of reboot interruption:
+
+If the server gets rebooted for whatever reason during an active run, stuff needs to be cleaned up or that cycle will sit in a locked state.
+
+shell command [ perl $TIGGE_TOOLS/cleanupRun.pl 2018121700 ]
+Will unlock the cycle 2018121700 ensuring everything is deleted, replace yyyymmddhh for any interrupted cycle. 
+Check the latest log in the set $HOME/crontab/logs/runTigge.*.log scroll to the bottom to figure which cycle got interrupted.
 
 
 Misc notes:
