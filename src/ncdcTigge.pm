@@ -14,8 +14,8 @@ our %EXPORT_TAGS = ( 'all' => 	[
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our $VERSION = "1.4";
-our $REVISION_DATE = "20180213";
+our $VERSION = "1.5";
+our $REVISION_DATE = "20190315";
 
 # Preloaded methods go here.
 
@@ -828,7 +828,11 @@ sub runLatest($;$)
 my $headline = "$0:ncdcTigge::runLatest(@_) : ";
 my $thisHOST = "Unknown Host";
 if( defined($ENV{'HOSTNAME'}) )     { $thisHOST = $ENV{'HOSTNAME'}; }
-print STDOUT "\n$headline Run on $thisHOST \@ ".localtime(time)."\n";
+print STDOUT "\n$headline Run on $thisHOST \@ ".localtime(time)."\n\n";
+print STDOUT " ENV:
+ TIGGE_TOOLS:  $ENV{TIGGE_TOOLS}
+ TIGGE_INPUT:  $ENV{TIGGE_INPUT}
+ TIGGE_OUTPUT: $ENV{TIGGE_OUTPUT}\n\n\n";
 
 my $NUMRUNS = shift(@_);
 if( $NUMRUNS !~ m/^\-?\d*$/ ) 
@@ -886,8 +890,8 @@ foreach my $d ( sort @directories )
 		}
 	}
 
-    # Look for completion flags in each dir, to avoid re-processing
-    #   a cycle which has already been done.
+
+	# Look for completion flags in each dir, to avoid re-processing
 	#	Look in TIGGE_INPUT First to see which DTG /CAN/ be processed
 	#	Then look at TIGGE_OUTPUT to ensure it needs to be
 
@@ -895,7 +899,12 @@ undef my @uncompletedRuns;
 foreach my $dir ( @directories )
     {
     my $thisPath = "$ENV{'TIGGE_INPUT'}/${dir}";
+    opendir( my $T, $thisPath ) || next;
+    my @testList = readdir( $T );
+    closedir( $T );
     my $tagFile = "${thisPath}/.completed";
+       # invalid input directory does not contain enough files ... do not consider it
+    if( $#testList < 10 )       { next; }
     if( !(-e $tagFile) )	{ push(@uncompletedRuns,$dir); }
     }
 
@@ -958,7 +967,7 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
 	close($theLOCKFILE);
 
 	print STDOUT "---------------------------------------------------\n";
-	print STDOUT "\t(".int($r+1).")\t$latestRun\n\n";
+	print STDOUT "\t(".int($r+1).")\t$latestRun\tLock: $runLatestLOCKFILE\n\n";
 	print STDOUT "$headline Checking : $latestRunPath for errors ...\n ";
 
 		# The QC is a long process and may be turned off with -noQC
@@ -1322,11 +1331,12 @@ my @tarRtn =  (`tar --exclude=*gens-ncdc*.grb2 --exclude=*.tar.gz --exclude=*OUT
 
 print STDOUT "Merging into master archive: $masterArchive\n\n";
 print STDOUT (`tar --concatenate --file=$masterArchive $tarzFile1 `);
+unlink($tarzFile1);   # DLS 2019-03  cleans up unneeded tmp. file
 
 if( @tarRtn ) 
 	{
-	print STDOUT "$headline Returned @tarRtn\n\n";
-	return("### $headline  Returned from tar:  @tarRtn\n\n");
+	print STDOUT "$headline $tarzFile1 Returned @tarRtn\n\n";
+	return("### $headline  Returned from tar $tarzFile1:  @tarRtn\n\n");
 	}
 
 my @rtn = ncdcTigge::mergeCycleMembers($cycle);
@@ -1365,13 +1375,22 @@ return("\n$headline Finished  ".localtime(time)."\n\n");
 #	Recovery depends on wget
 #
 
-sub ncepNomadsBackupSource($)
+sub ncepNomadsBackupSource($;$)
 	{
 	my $cycle = shift(@_);
+	my $force = 0;
+	if( ($#ARGV > -1) && ($ARGV[0] == 1) )
+		{ $force = 1; }
 	my $directory = "$ENV{TIGGE_INPUT}/$cycle";
 
 	if( $cycle !~ m/^\d{10}$/ ) 
 		{ return("### invalid input ($cycle) need 10 digit INT"); }
+	if( ! -d $directory ) 
+		{ return( "### not a directory: $directory" ); }
+
+	my $localAge = int( (-C $directory) * 24);
+	if( $localAge < 4 ) 
+		{ return( "### $directory changed within 4 hours, ignoring for safety." ); }
 
 	my $ymd = substr($cycle,0,8);
 	my $cyc = substr($cycle,8,2);
@@ -1406,8 +1425,8 @@ sub ncepNomadsBackupSource($)
 		else { return(0); }
 		}
 
-	if( !(-d $directory) || !(-r $directory) )
-		{ return("### No local directory for $cycle ($directory)"); }
+	if( !(-r $directory) )
+		{ return("### Cannot read directory : $cycle ($directory)"); }
 
 	my $ok = 0;
 	my $notok = 0;
@@ -1481,12 +1500,14 @@ sub mergeRecords($$$)
 #print STDOUT "||DEBUG|||  $dir $#allFiles (@allFiles)\n\n";
 	if( $#allFiles <= -1 )   { return(-16); } 
 
-	for( my $mb = 0; $mb <= 20; $mb++ )
+	for( my $mb = 0; $mb <= $ENS_MEMBERS; $mb++ )
 		{
 		foreach my $lv ( @lvs ) 
 			{
 			my $m = sprintf( "%03d",$mb );
 			my $ofn = "z_tigge_c_kwbc_${cyc}0000_glob_prod_pf_${lv}_${m}.grib";
+			if( int( $mb ) == 0 ) 
+				{ $ofn = "z_tigge_c_kwbc_${cyc}0000_glob_prod_cf_${lv}_${m}.grib"; }
 			my $patt = "_${lv}_\\d{4}_${m}.*\\.grib\$";
 			my @set = grep( /$patt/, @allFiles );
 			my $OUTFILE = "${dirOut}/${ofn}";
