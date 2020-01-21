@@ -263,7 +263,7 @@ In case of reboot interruption:
 
 If the server gets rebooted for whatever reason during an active run, stuff needs to be cleaned up or that cycle will sit in a locked state.
 
-shell command [ perl $TIGGE_TOOLS/cleanupRun.pl 2018121700 ]
+shell command [ perl $TIGGE_TOOLS/bin/cleanupRun.pl 2018121700 ]
 Will unlock the cycle 2018121700 ensuring everything is deleted, replace yyyymmddhh for any interrupted cycle. 
 Check the latest log in the set $HOME/crontab/logs/runTigge.*.log scroll to the bottom to figure which cycle got interrupted.
 
