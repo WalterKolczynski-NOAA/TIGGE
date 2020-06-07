@@ -110,7 +110,6 @@ int grib_jasper_encode(grib_context *c, j2k_encode_helper *helper) {
     image.maxcmpts_ = 1;
     image.clrspc_   = JAS_CLRSPC_SGRAY;
     image.cmprof_   = 0;
-    image.inmem_    = 1;
 
     cmpt.tlx_       = 0;
     cmpt.tly_       = 0;
