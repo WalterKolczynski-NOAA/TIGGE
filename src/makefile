@@ -2,9 +2,11 @@
 # NCDC TIGGE project.
 # 2007-2016
 
-ifndef TIGGE_TOOLS
-$(error ENV VAR TIGGE_TOOLS is not set, this should be the base PATH where you exported the repository - it contains ./src ./bin, etc. )
-endif
+# ifndef TIGGE_TOOLS
+# $(error ENV VAR TIGGE_TOOLS is not set, this should be the base PATH where you exported the repository - it contains ./src ./bin, etc. )
+# endif
+
+TIGGE_TOOLS = $(CURDIR)/..
 
 CC = gcc
 CFLAGS = -Wall -g
@@ -98,7 +100,8 @@ install:
 # Should check for $(TIGGE_BIN) here - but could not figure syntax.
 	@echo "bin is ready - Installing... "
 	@echo ""
-	mkdir $(TIGGE_TOOLS)/bin/
+	mkdir -p $(TIGGE_TOOLS)/bin
+	tar -xf perl-tigge.tar.bz2 -C $(TIGGE_TOOLS)/bin
 	cp $(TIGGE_BIN) $(TIGGE_TOOLS)/bin/$(TIGGE_BIN)
 	cp -f ./$(TIGGE_BIN).pm $(TIGGE_TOOLS)/bin/$(TIGGE_BIN).pm
 	@echo ""
