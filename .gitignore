@@ -1,5 +1,6 @@
-*.o
-*.lo
+*.[oa]
+*.l[oa]
+*.mod
 *.so
 *.so.0
 *.so.0.0.0
@@ -9,3 +10,11 @@
 input
 output
 src/ncdcTigge
+grib-api/autom4te.cache/requests
+grib-api/rpms/grib_api.pc
+grib-api/rpms/grib_api_f90.pc
+grib-api/lib/pkgconfig/grib_api.pc
+grib-api/lib/pkgconfig/grib_api_f90.pc
+grib-api/share/grib_api/definitions/grib1/grid_definition_8.def
+grib-api/include/grib_api.mod
+grib-api/src/config.h
