@@ -1,5 +1,11 @@
-# Ignored files
-*.[oa]
-*.l[oa]
-*.Po
+*.o
+*.lo
+*.so
+*.so.0
+*.so.0.0.0
 *.Plo
+**/bin
+**/.deps
+input
+output
+src/ncdcTigge

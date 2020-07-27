@@ -101,9 +101,9 @@ install:
 	@echo "bin is ready - Installing... "
 	@echo ""
 	mkdir -p $(TIGGE_TOOLS)/bin
-	tar -xf perl-tigge.tar.bz2 -C $(TIGGE_TOOLS)/bin
+# 	tar -xf perl-tigge.tar.bz2 -C $(TIGGE_TOOLS)/bin
 	cp $(TIGGE_BIN) $(TIGGE_TOOLS)/bin/$(TIGGE_BIN)
-	cp -f ./$(TIGGE_BIN).pm $(TIGGE_TOOLS)/bin/$(TIGGE_BIN).pm
+# 	cp -f ./$(TIGGE_BIN).pm $(TIGGE_TOOLS)/bin/$(TIGGE_BIN).pm
 	@echo ""
 	@echo " * Manual Post Install instructions *"
 	@echo " * Ensure the device hosting TIGGE_TOOLS/input and /output , and/or the target of TIGGE_INPUT / TIGGE_OUTPUT has adequate space.  Create symbolic links to larger partitions if needed."

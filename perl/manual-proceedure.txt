@@ -1,0 +1,54 @@
+A '$' indicates a bash shell command to run
+
+These are in-depth instructions, an easier way is to use a retrospective
+  enviornment (source setup_rerun.bashrc) That is a [cp -R] of the
+  deployed production area in a different path with input from retrospective cycles,
+  without fear of the input being deleted by production cronjobs.
+  After the input cycles are in place, simply goto /bin and run 
+$ perl ./runTigge.pl X >&./log &
+  where X is the number of cycles to run.
+
+
+
+In-depth proceedure
+
+Do not watch these commands because each may take upwards of a day to finish 
+    depending on size of the cycle list to rerun..
+
+<< gather a line delimited list of cycles [yyyymmddhh] to rerun, call it rerunXX.list >>
+$ source tigge.bashrc
+$ export TIGGE_TOOLS="$HOME/tigge"
+ ** These ENV need to be set before ANY of the following commands will work properly.
+ ** - not just the first one, as this process usually transpires over multiple sessions.
+
+$ cat rerunXX.list | xargs -I {} perl $TIGGE_TOOLS/bin/runQcInput.pl {} >&./rqciXX.log &
+Analyze rqciXX.log for failures, if found, either fix it or remove failures from rerunXX.list and note it somewhere
+
+$ grep "*-*-PASSED-*-*" rqciXX.log | wc -l
+$ wc -l rerunXX.list
+    < These two resulting counts should be equal.
+
+$ cat rerunXX.list | xargs -I {} $TIGGE_TOOLS/bin/ncdcTigge {} all >&./mainXX.log &
+$ cat rerunXX.list | xargs -I {} $TIGGE_TOOLS/bin/runQcOutput.pl {} >&./rqcoXX.log &
+
+$ grep " PASS"  ./rqcoXX.log | wc -l
+    * This should equal the number of lines in [wc -l rerunXX.list]
+    * if it doesn't match, record any failures and remove them from the .list file
+
+$ cat rerunXX.list | xargs -I {} perl $TIGGE_TOOLS/bin/finalize.pl {} >&./finXX.log  &
+
+
+Check the output (ls -l) and ensure they are sane... no zero byte files, .. etc.
+   proper file size at this point are about 800 MB & contain 15015 records.
+   Optionally: run a tar -tvf test on them.
+   Remove unnecessary files from output/archive:
+	rm tigge-kwbc-*.tar gens-ncdc_3_*.tar.gz
+	rm -rf ??????????
+
+tigge-kwbc-2017082418.tar 2017082418
+$ cat rerunXX.list | xargs -I {} perl recat.pl {} >&./recatXX.log &
+
+At this point, the files concatenated by recat.pl should be 5.1 GB and 
+   contain approx. 91000 records.
+
+Lastly, Stash the various logs.
