@@ -20,7 +20,7 @@ our $QCREPORTpath = "$outputStash/$QCREPORT";
 print STDOUT "$0 @ARGV Run at ".scalar localtime(time)."\n\n";
 
 my $headline = "$0 (@ARGV) : ";
-our $base = "$ENV{TIGGE_TOOLS}/perl";
+our $base = "$ENV{TIGGE_TOOLS}/scripts";
 our $checkList = "${base}/output-verify.list";
 	# A list of patterns to ensure all needed fields were converted.
 	# previously this was .txt file, which left it vulnerable to deletion.
