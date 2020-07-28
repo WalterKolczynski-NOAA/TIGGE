@@ -36,7 +36,7 @@ my @EXCLUDE =   (
 	"\^MoLode\$","logs","\.c\$","\.p[lm]\$",
 	"\.perl\$","\.o\$","\.a\$","\.exe\$","\.log\$","\.csh\$",
 	"\.bash\$","\.sh\$","\.txt\$","\.meta\$" );
-print STDOUT ncdcTigge::cleanupLocation($ENV{'TIGGE_INPUT'},7.5,@EXCLUDE);
+# print STDOUT ncdcTigge::cleanupLocation($ENV{'TIGGE_INPUT'},7.5,@EXCLUDE);
 
 print STDOUT "\n\n=============================================================\n\n";
 

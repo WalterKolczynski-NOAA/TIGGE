@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use ncdcTigge 1.4;
+use File::Path;
 sub convertFile($);
 sub qcOutput2($);
 sub cleanDevShm();
@@ -19,7 +20,7 @@ our $QCREPORTpath = "$outputStash/$QCREPORT";
 print STDOUT "$0 @ARGV Run at ".scalar localtime(time)."\n\n";
 
 my $headline = "$0 (@ARGV) : ";
-our $base = "$ENV{TIGGE_TOOLS}/bin";
+our $base = "$ENV{TIGGE_TOOLS}/perl";
 our $checkList = "${base}/output-verify.list";
 	# A list of patterns to ensure all needed fields were converted.
 	# previously this was .txt file, which left it vulnerable to deletion.
@@ -123,7 +124,7 @@ cleanDevShm();	# make sure junk does not accumulate.
 print STDOUT "$0 proceeding to convert entire directory: [$inputDir] >> [$outputStash] ...\n\n";
 
 opendir(IN,$inputDir);
-my @files = sort grep(/\.grb2$/,readdir(IN));
+my @files = sort grep(/\.pgrb2.(f\d{2,3}|anl)$/,readdir(IN));
 closedir(IN);
 
 # tigge_split bombs output into the current working directory
@@ -147,12 +148,6 @@ closedir(CLEANER);
 foreach my $tmpoutDel ( @existoutlist ) 
 	{ unlink("${outCache}/$tmpoutDel"); }
 
-
-# -testing-
-# main::convertFile("/home/nomads/tigge-svn/input/2014090418/gens-b_3_20140904_1800_384_12.grb2");
-# main::convertFile("/home/nomads/tigge-svn/input/2014090418/gens-b_3_20140904_1800_060_08.grb2");
-# main::convertFile("/home/nomads/tigge-svn/input/2014090418/gens-b_3_20140904_1800_120_11.grb2");
-# main::convertFile("/home/nomads/tigge-svn/input/2014090418/gens-b_3_20140904_1800_180_13.grb2");
 undef my @rtnCodes;
 print STDOUT "\n -- Progress ---------------------------\n\n";
 foreach my $f ( @files ) 
@@ -208,9 +203,6 @@ print STDOUT "$0 @ARGV DONE   ".scalar localtime(time)."\n\n";
 
 exit(0);
 
-
-
-
 sub convertFile($)
 	{
 	my $headline = "$0:convertFile() : ";
@@ -240,7 +232,10 @@ sub convertFile($)
 #print STDOUT " DEBUG > sub > got $filePathHead :: $filePath \n";
 
 	open( LOG,">>","./convert.log" ) || die("\n$0 could not open logging.\n\n");
-	my $tmpOut = "/dev/shm/${filePathHead}_convert.$$.grb2";
+	if ( !-d $ENV{TIGGE_PTMP}) {
+		make_path($ENV{TIGGE_PTMP}) || die ("\n$0 could not create temp directory $ENV{TIGGE_PTMP}\n\n");
+	}
+	my $tmpOut = "$ENV{TIGGE_PTMP}/${filePathHead}_convert.$$.grb2";
 
 #print STDOUT "DEBUG (main proceedure) \n
 #------------------------------------------------------------------
@@ -303,10 +298,7 @@ foreach my $pattern ( @checkListPatterns )
 	{
 	chomp($pattern);
 	my @articles = split(/,/,$pattern);
-	my $matcher = "z_tigge_c_kwbc_.............._...._${articles[6]}_${articles[0]}_${articles[1]}_${articles[2]}_${articles[3]}_${articles[4]}_${articles[5]}.grib";
-
-# z_tigge_c_kwbc_20140910120000_glob_prod_pf_sl_0384_020_0000_2t.grib
-# pf,sl,0384,004,0000,mn2t6,prod
+	my $matcher = qq(z_tigge_c_kwbc_.............._...._${articles[6]}_${articles[0]}_${articles[1]}_${articles[2]}_${articles[3]}_${articles[4]}_${articles[5]}.grib);
 
 	my @scan = grep( /$matcher/i, @theOutput );
 
@@ -322,8 +314,10 @@ foreach my $pattern ( @checkListPatterns )
 
 close(REP);
 
-	# Eventually we will check & stop here if there were QC errors.
-	#   but this is preliminary.
+
+
+# Eventually we will check & stop here if there were QC errors.
+#   but this is preliminary.
 
 if( 1 == 1 ) 
 	{
@@ -346,7 +340,7 @@ if( 1 == 1 )
 			{ print STDOUT "WARNING problem $catRtn concatenating output files!\n\n"; }
 
 		if( !(-d $outputArchive) )    { mkdir($outputArchive); }
-                if( !(-d $outputArchive) )
+        if( !(-d $outputArchive) )
 			{
 			chdir( $outputStash) || return( "chdir failed","chdir failed" );
 			print STDOUT " tarring $tarArchiveUnit \@ ".scalar(localtime(time))."\n";

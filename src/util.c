@@ -334,32 +334,21 @@ void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int
 
 	char* newFileNamePrefix = INPUT_FILENAME_PREFIX;
 	char directoryString[12];
-	char* gensPrefix = "gens-";
-	char fileLetter[3];
-	char* modelGrid = "3_";	
-	char fileNameDate[10];
-	char modelRunTime[6];
-	char modelForecastHour[5];
 	char modelEnsembleMember[3];
-	char* suffix = ".grb2";
+	char fileLetter[3];
 
-	//gens-b_3_20071109_1200_384_20.grb2
 	sprintf(directoryString, "%04d%02d%02d%02d/", yyyy, mm, dd, hh);
 	if(fileNumber == 0)
-		strcpy(fileLetter, "a_");
+		strcpy(fileLetter, "a");
 	else
-		strcpy(fileLetter, "b_");
-	
-	
-	sprintf(fileNameDate, "%04d%02d%02d_", yyyy, mm, dd);
-	sprintf(modelRunTime, "%02d00_", hh);
-	sprintf(modelForecastHour, "%03d_", fff);
-	sprintf(modelEnsembleMember, "%02d", em);
-	
-	// clear the name string
-	memset(fileName, 0, 128);
-	sprintf(fileName, "%s%s%s%s%s%s%s%s%s%s", newFileNamePrefix, directoryString, gensPrefix, fileLetter, 
-		modelGrid, fileNameDate, modelRunTime, modelForecastHour, modelEnsembleMember, suffix);
+		strcpy(fileLetter, "b");
+
+	if(em == 0)
+		sprintf(modelEnsembleMember, "c%02d", em);
+	else
+		sprintf(modelEnsembleMember, "p%02d", em);
+
+	sprintf(fileName, "%s%sge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
 
 	return;
 }

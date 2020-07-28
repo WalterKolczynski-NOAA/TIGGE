@@ -4,7 +4,13 @@ use 5.008000;
 use strict;
 use warnings;
 
+use File::Basename;
+
 require Exporter;
+
+our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])f(\d{2,3})$);
+our $gefs_filepattern_a = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2(a)f(\d{2,3})$);
+our $gefs_filepattern_b = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2(b)f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
@@ -308,24 +314,15 @@ if( !(-e $GRIB_LS) )
 if( !(-x $GRIB_LS) )
     { return(2,"dependancy error","$GRIB_LS : cannot be executed!\n\n"); }
 
-my ($inFileParseName,$inFileParseGrid,$inFileParseDTG,$inFileParseCycle,$inFileParseFct,$inFileParseMem) =
-  $inFileName =~ m/^(gens-.)_(\d)_(\d{8})_(\d{4})_(\d{3})_(\d{2})\.(grb2)$/i;
-
+# my ($inFileParseName,$inFileParseGrid,$inFileParseDTG,$inFileParseCycle,$inFileParseFct,$inFileParseMem) =
+#   $inFileName =~ m/^(gens-.)_(\d)_(\d{8})_(\d{4})_(\d{3})_(\d{2})\.(grb2)$/i;
+my ( $inFileParseMem, $inFileParseCycle, $gensFileType, $inFileParseFct ) =
+  $inFileName =~ m/$gefs_filepattern/i;
 
 my $gribLsKeysString = join(',',@gribLsKeys);
 my $gribLsKeyCount = $#gribLsKeys +1;
 
-    # Determine gens file type (a or b currently)
-my $gensFileType = "-";
-if( $inFile =~ m/gens\-a/i ) { $gensFileType = "a"; }
-if( $inFile =~ m/gens\-b/i ) { $gensFileType = "b"; }
-if( $gensFileType eq "-" )
-    {
-    return(4,"input problem",
-        "GENS file type cannot be determined by filename {$gensFileType}\n");
-    }
-
-my @dtgi = ncdcTigge::getDTGfromGensFileName($inFile,2);
+my @dtgi = ncdcTigge::getDTGfromGensFileName($inFile);
 my $dtg = $dtgi[0];
 if( $dtg eq "ERROR" ) 
 	{
@@ -575,7 +572,7 @@ if( (-e $qcTagFile) && !(-z $qcTagFile) )
 opendir(DIR,$inDir) || return("$headline Error opening $inDir\n");
 my @dirAll = readdir(DIR);
 closedir(DIR);
-my @dirGrb = sort grep(/gens-[ab].*\.grb2$/i,@dirAll);
+my @dirGrb = sort grep(/$gefs_filepattern/i,@dirAll);
 my @dirTags = sort grep(/^CURRENTLY\-DOWNLOADING\-\d{1,8}$/i,@dirAll);
 
 	# Check for stale tags.. 
@@ -595,7 +592,7 @@ foreach my $dltag ( @dirTags )
 opendir(DIR,$inDir) || return("$headline Error opening $inDir\n");
 @dirAll = readdir(DIR);
 closedir(DIR);
-@dirGrb = sort grep(/gens-[ab].*\.grb2$/i,@dirAll);
+@dirGrb = sort grep(/$gefs_filepattern/i,@dirAll);
 @dirTags = sort grep(/^CURRENTLY\-DOWNLOADING\-\d{1,8}$/i,@dirAll);
 
 
@@ -609,7 +606,7 @@ if ( $#dirTags > -1 )
 	opendir(DIR,$inDir) || return("$headline Error opening $inDir\n");
 	@dirAll = readdir(DIR);
 	closedir(DIR);
-	@dirGrb = sort grep(/gens-[ab].*\.grb2$/i,@dirAll);
+	@dirGrb = sort grep(/$gefs_filepattern/i,@dirAll);
 	}
 
 undef my %filesPerMember;
@@ -619,7 +616,9 @@ foreach my $thisFile ( @dirGrb )
     if(  (-z $thisPath) ) { next; }
     if( !(-r $thisPath) ) { next; }
     my @fnParts = split(/[\.\-\_]/,$thisFile);
-    my $memberCode = "$fnParts[6]-$fnParts[1]";
+    my ( $inFileParseMem, $inFileParseCycle, $inFileParseType, $inFileParseFct ) = 
+         $thisFile =~ m/$gefs_filepattern/i;
+    my $memberCode = "$inFileParseMem-$inFileParseType";
     $filesPerMember{$memberCode}++;
     }
 
@@ -639,7 +638,7 @@ for( my $m = 0; $m <= 20; $m++ )
         for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC )
             {
             my $fms = sprintf("%03d_%02d",$f,$m);
-            if( scalar grep(/^gens-a.*_${fms}.grb2$/,@dirGrb ) == 0 )
+            if( scalar grep(/$gefs_filepattern_a/,@dirGrb ) == 0 )
               {
               print STDERR " ! MISSING A FILE: $inDir Member ${m} / Fct $f \n";
               }
@@ -651,7 +650,7 @@ for( my $m = 0; $m <= 20; $m++ )
         for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC )
             {
             my $fms = sprintf("%03d_%02d",$f,$m);
-            if( scalar grep(/^gens-b.*_${fms}.grb2$/,@dirGrb ) == 0 )
+            if( scalar grep(/$gefs_filepattern_b/,@dirGrb ) == 0 )
               {
               print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
               }
@@ -753,7 +752,6 @@ if( !(-r $ENV{'TIGGE_OUTPUT'}) )
 my $numVars = $#ncdcTigge::tiggeVarCodes + 1;
 my $expectedVarCount = ($ncdcTigge::ENS_MEMBERS+1) * ($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC +1);
 my $expectedCycleCount = $expectedVarCount * $numVars;
-
 
 print STDOUT " * Scanning dir; [$ENV{'TIGGE_OUTPUT'}] \n";
 opendir(OUTDIR,$ENV{'TIGGE_OUTPUT'}) || 
@@ -871,7 +869,7 @@ foreach my $d ( sort @directories )
 	opendir(MYDIR,$subDir);
 	my @contents = grep(!/^\.{1,2}$/,readdir(MYDIR));
 	closedir(MYDIR);
-	my @gribContents = grep(/\.gri?b2$/,@contents);
+	my @gribContents = grep(/$gefs_filepattern/,@contents);
 	if( ($#gribContents == -1) && ($#contents == -1) && ($subDirAge > 2.0 ) ) 
 		{ print STDOUT "   Removed: $subDir\n"; rmdir($subDir); }
 	elsif( ($#gribContents == -1) && ($#contents > -1) && ($subDirAge > 0.0 ) )
@@ -992,7 +990,8 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
 
 		# This is the header conversion portion that NCAR used to do.
 		# it is a standalone process -- for now.
-    print STDOUT (`perl $ENV{'TIGGE_TOOLS'}/bin/run_ncep_convert.pl $uncompletedRuns[$r] `);
+    print STDOUT (`perl run_ncep_convert.pl $uncompletedRuns[$r] `);
+    # print STDOUT (`perl -d:Trace $ENV{'TIGGE_TOOLS'}/perl/run_ncep_convert.pl $uncompletedRuns[$r] `);
     print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $uncompletedRuns[$r] all
 	Is currently running\n\n");
 	chdir("$ENV{TIGGE_TOOLS}") || 
@@ -1002,7 +1001,7 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
     print STDOUT ("  Processor Finished.\n\n".localtime(time)."\n\noutput:\n");
     print STDOUT join("\n",@execute)."\n\n";
 
-		# QC the results, and move to output/archive directory
+	# QC the results, and move to output/archive directory
 	print STDOUT "$headline Checking $latestRun Run output...\n\n";
 	my @qcOutputResults =  ncdcTigge::qcOutput($uncompletedRuns[$r]);
 	if( $qcOutputResults[0] ne "PASS" )
@@ -1032,14 +1031,14 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
 	print STDOUT "\n ===---===---===---===---===---===---===---===\n\n";
 	}
 
-print "\n\n$headline -- Starting Uploader --\n\n";
+# print "\n\n$headline -- Starting Uploader --\n\n";
 # 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # 	This was broken by the 2008-05-22 patch, 
 #	reinstate once Net::FTP is fixed by admin.
 #	using a system call to utility as a work-around
 # print STDOUT ncdcTigge::uploadResults();
-print STDOUT (`$ENV{'TIGGE_TOOLS'}/bin/runUploader.pl`);
-print "\n\n$headline -- Uploader finished --\n\n";
+# print STDOUT (`$ENV{'TIGGE_TOOLS'}/perl/runUploader.pl`);
+# print "\n\n$headline -- Uploader finished --\n\n";
 
 return("\n$headline returned OK\n\n");
 }
@@ -1236,8 +1235,9 @@ for( my $m = 0; $m <= $ncdcTigge::ENS_MEMBERS; $m++ )
 	my $memberFilePath = "${archiveTargetDir}/${memberFileName}";
 	my $memberKey = sprintf("%03d",$m);
 	print STDOUT "Merging Member ${m} ->\t";
-	my @memberFiles = grep(/^z_tigge_c_kwbc_${cycle}0000_[a-z]*_[a-z]*_[a-z]*_[a-z]*_\d{4}_${memberKey}_(\d|\?){4}_[a-z]*\.grib$/,@cycleFiles);
-# print "    my \@memberFiles = grep(/\^z_tigge_c_kwbc_\${cycle}0000_[a-z]*_[a-z]*_[a-z]*_[a-z]*_\d{4}_\${memberKey}_(\d|\?){4}_[a-z\]\*\.grib\$\/,\@cycleFiles); ";
+	my @memberFiles = grep(/^z_tigge_c_kwbc_${cycle}0000_[a-z]{4}_[a-z]{4}_[a-z]{2}_[a-z]{2}_${memberKey}\.grib$/,@cycleFiles);
+	# my @memberFiles = grep(/^z_tigge_c_kwbc_${cycle}0000_[a-z]*_[a-z]*_[a-z]*_[a-z]*_\d{4}_${memberKey}_(\d|\?){4}_[a-z]*\.grib$/,@cycleFiles);
+	# print "    my \@memberFiles = grep(/\^z_tigge_c_kwbc_\${cycle}0000_[a-z]*_[a-z]*_[a-z]*_[a-z]*_\d{4}_\${memberKey}_(\d|\?){4}_[a-z\]\*\.grib\$\/,\@cycleFiles); ";
 	if( $#memberFiles == -1 ) 
 		{ print STDOUT " ! $0 Member $memberKey : No files!\n"; next; }
 
@@ -1375,103 +1375,103 @@ return("\n$headline Finished  ".localtime(time)."\n\n");
 #	Recovery depends on wget
 #
 
-sub ncepNomadsBackupSource($;$)
-	{
-	my $cycle = shift(@_);
-	my $force = 0;
-	if( ($#ARGV > -1) && ($ARGV[0] == 1) )
-		{ $force = 1; }
-	my $directory = "$ENV{TIGGE_INPUT}/$cycle";
+# sub ncepNomadsBackupSource($;$)
+# 	{
+# 	my $cycle = shift(@_);
+# 	my $force = 0;
+# 	if( ($#ARGV > -1) && ($ARGV[0] == 1) )
+# 		{ $force = 1; }
+# 	my $directory = "$ENV{TIGGE_INPUT}/$cycle";
 
-	if( $cycle !~ m/^\d{10}$/ ) 
-		{ return("### invalid input ($cycle) need 10 digit INT"); }
-	if( ! -d $directory ) 
-		{ return( "### not a directory: $directory" ); }
+# 	if( $cycle !~ m/^\d{10}$/ ) 
+# 		{ return("### invalid input ($cycle) need 10 digit INT"); }
+# 	if( ! -d $directory ) 
+# 		{ return( "### not a directory: $directory" ); }
 
-	my $localAge = int( (-C $directory) * 24);
-	if( $localAge < 4 ) 
-		{ return( "### $directory changed within 4 hours, ignoring for safety." ); }
+# 	my $localAge = int( (-C $directory) * 24);
+# 	if( $localAge < 4 ) 
+# 		{ return( "### $directory changed within 4 hours, ignoring for safety." ); }
 
-	my $ymd = substr($cycle,0,8);
-	my $cyc = substr($cycle,8,2);
+# 	my $ymd = substr($cycle,0,8);
+# 	my $cyc = substr($cycle,8,2);
 
 
-	# internal recovery subroutine, ARGS:
-	# dtg,fct,mem,type,outputReNamer (full path)
+# 	# internal recovery subroutine, ARGS:
+# 	# dtg,fct,mem,type,outputReNamer (full path)
 
-	sub attemptRecovery($$$$$)
-		{
-		my $dtg  = shift(@_);
-		my $fct  = shift(@_);
-		my $mem  = shift(@_);
-		my $type = lc(shift(@_));
-		my $output = shift(@_);
+# 	sub attemptRecovery($$$$$)
+# 		{
+# 		my $dtg  = shift(@_);
+# 		my $fct  = shift(@_);
+# 		my $mem  = shift(@_);
+# 		my $type = lc(shift(@_));
+# 		my $output = shift(@_);
 
-		my $ymd = substr($dtg,0,8);
-		my $cyc = substr($dtg,8,2);
-		my $prefix = "gec";
-		if( int($mem) > 0 ) { $prefix = "gep"; }
+# 		my $ymd = substr($dtg,0,8);
+# 		my $cyc = substr($dtg,8,2);
+# 		my $prefix = "gec";
+# 		if( int($mem) > 0 ) { $prefix = "gep"; }
 
-		my $baseURL = "http://nomads.ncep.noaa.gov/pub/data/nccf/com/gens/prod";
-		my $subURL = sprintf("gefs.${ymd}/${cyc}/pgrb2${type}/${prefix}%02d.t${cyc}z.pgrb2${type}f%02d",
-			$mem,$fct);
-		my $fullURL = "$baseURL/$subURL";
+# 		my $baseURL = "http://nomads.ncep.noaa.gov/pub/data/nccf/com/gens/prod";
+# 		my $subURL = sprintf("gefs.${ymd}/${cyc}/pgrb2${type}/${prefix}%02d.t${cyc}z.pgrb2${type}f%02d",
+# 			$mem,$fct);
+# 		my $fullURL = "$baseURL/$subURL";
 		
-		print STDOUT "auto-recovering: $fullURL > $output \n";
-		my @capture = (`wget --tries=3 -O $output $fullURL >&/dev/null`);
+# 		print STDOUT "auto-recovering: $fullURL > $output \n";
+# 		my @capture = (`wget --tries=3 -O $output $fullURL >&/dev/null`);
 
-			# verify
-		if( (-e $output) && (-s $output) )  { return(1); }
-		else { return(0); }
-		}
+# 			# verify
+# 		if( (-e $output) && (-s $output) )  { return(1); }
+# 		else { return(0); }
+# 		}
 
-	if( !(-r $directory) )
-		{ return("### Cannot read directory : $cycle ($directory)"); }
+# 	if( !(-r $directory) )
+# 		{ return("### Cannot read directory : $cycle ($directory)"); }
 
-	my $ok = 0;
-	my $notok = 0;
-	my $recovered = 0;
-	for( my $mem = 0; $mem <= 20; $mem += 1 )
-		{
-		for( my $fct = 0; $fct <= 384; $fct += 6 ) 
-			{
-			my $localFileNameA = sprintf("gens-a_3_${ymd}_${cyc}00_%03d_%02d.grb2",
-				$fct,$mem);
-			my $localFileNameB = sprintf("gens-b_3_${ymd}_${cyc}00_%03d_%02d.grb2",
-				$fct,$mem);
-			my $localFilePathA = "${directory}/${localFileNameA}";
-			my $localFilePathB = "${directory}/${localFileNameB}";
+# 	my $ok = 0;
+# 	my $notok = 0;
+# 	my $recovered = 0;
+# 	for( my $mem = 0; $mem <= 20; $mem += 1 )
+# 		{
+# 		for( my $fct = 0; $fct <= 384; $fct += 6 ) 
+# 			{
+# 			my $localFileNameA = sprintf("gens-a_3_${ymd}_${cyc}00_%03d_%02d.grb2",
+# 				$fct,$mem);
+# 			my $localFileNameB = sprintf("gens-b_3_${ymd}_${cyc}00_%03d_%02d.grb2",
+# 				$fct,$mem);
+# 			my $localFilePathA = "${directory}/${localFileNameA}";
+# 			my $localFilePathB = "${directory}/${localFileNameB}";
 
-			if( (-e $localFilePathA) && (-z $localFilePathA) ) 
-				{ unlink($localFilePathA); }
-			if( (-e $localFilePathB) && (-z $localFilePathB) )
-				{ unlink($localFilePathB); }
+# 			if( (-e $localFilePathA) && (-z $localFilePathA) ) 
+# 				{ unlink($localFilePathA); }
+# 			if( (-e $localFilePathB) && (-z $localFilePathB) )
+# 				{ unlink($localFilePathB); }
 
-			if( !(-e $localFilePathA) ) 
-				{ 
-				$notok++;
-				#print STDOUT " Need < $localFilePathA\n";
-				$recovered += attemptRecovery($cycle,$fct,$mem,"a",$localFilePathA);
-				}
-			else
-				{ $ok++; }
+# 			if( !(-e $localFilePathA) ) 
+# 				{ 
+# 				$notok++;
+# 				#print STDOUT " Need < $localFilePathA\n";
+# 				$recovered += attemptRecovery($cycle,$fct,$mem,"a",$localFilePathA);
+# 				}
+# 			else
+# 				{ $ok++; }
 
-			if( !(-e $localFilePathB) )
-				{ 
-				$notok++;
-				# print STDOUT " Need < $localFilePathB\n";
-				$recovered += attemptRecovery($cycle,$fct,$mem,"b",$localFilePathB);
-				}
-			else { $ok++;  }
+# 			if( !(-e $localFilePathB) )
+# 				{ 
+# 				$notok++;
+# 				# print STDOUT " Need < $localFilePathB\n";
+# 				$recovered += attemptRecovery($cycle,$fct,$mem,"b",$localFilePathB);
+# 				}
+# 			else { $ok++;  }
 
-#			print STDOUT "$localFileNameA $localFileNameB\n";
+# #			print STDOUT "$localFileNameA $localFileNameB\n";
 
-			# gens-a_3_20130819_1800_384_00.grb2
-			}
-		}
+# 			# gens-a_3_20130819_1800_384_00.grb2
+# 			}
+# 		}
 
-	return(" ( ok $ok / not ok $notok ) recovered $recovered ");
-	}
+# 	return(" ( ok $ok / not ok $notok ) recovered $recovered ");
+# 	}
 
 
 #
@@ -1548,28 +1548,15 @@ sub mergeRecords($$$)
 #       Utility function - obtains dates from gens filenames
 #
 sub getDTGfromGensFileName($$)
-        {
-        my $result = "";
-        my $fName = shift(@_);
-	$fName =~ s/^.*\///g;  # lop off any paths
-        if( $fName eq "" )
-                { return("ERROR",1,"fName is blank.\n\n"); }
-        my $parts = shift(@_);
+    {
+    my $fName = shift(@_);
+    my($basename,$path) = fileparse($fName);
+    my $result = basename($path);
 
-        if( $parts !~ m/^[123]$/ )
-                { $parts = 2; }
-        my @dtgMatch =
-                $fName =~ m/_(\d{4}[0-1]\d[0-3]\d)_?([0-2]\d)?([0-5]\d)?/i;
-        for( $a = 1; $a <= $parts; $a++)
-                {
-                my $tmp = shift(@dtgMatch);
-                $result = "${result}${tmp}";
-#       print "$tmp:$a = $result\n";
-                }
-        if( $result !~ m/^\d{4}[0-1]\d[0-3]\d([0-2]\d)?([0-5]\d)?$/ )
-                { return("ERROR",2,"bad return data $result\n"); }
-        return($result);
-        }
+    if( $result !~ m/^\d{4}[0-1]\d[0-3]\d([0-2]\d)?([0-5]\d)?$/ )
+            { return("ERROR",2,"bad return data $result\n"); }
+    return($result);
+    }
 
 
 #   END -- Preloaded methods go here.
