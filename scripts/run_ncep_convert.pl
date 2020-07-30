@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use ncdcTigge 1.4;
-use File::Path;
+use File::Path qw(make_path);
 sub convertFile($);
 sub qcOutput2($);
 sub cleanDevShm();

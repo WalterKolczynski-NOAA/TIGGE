@@ -818,6 +818,124 @@ return("PASS",$headline,"Set the tagfile : $tagFile");
 #===========================================================================
 
 
+
+sub runCycle($;$) {
+    my $headline = "$0:ncdcTigge::runCycle(@_) : ";
+    my $latestRun = shift(@_);
+
+    my $thisHOST = "Unknown Host";
+    if( defined($ENV{'HOSTNAME'}) )     { $thisHOST = $ENV{'HOSTNAME'}; }
+    print STDOUT "\n$headline Run on $thisHOST \@ ".localtime(time)."\n\n";
+    print STDOUT " ENV:
+     TIGGE_TOOLS:  $ENV{TIGGE_TOOLS}
+     TIGGE_INPUT:  $ENV{TIGGE_INPUT}
+     TIGGE_OUTPUT: $ENV{TIGGE_OUTPUT}\n\n\n";
+
+    my $QC = "yes";
+    if ( scalar grep(/^-noQC/,@_) )
+        {  $QC = "no";  }
+
+    $ENV{'TIGGE_INPUT'} ||
+        return("### $headline : Required ENV VAR : TIGGE_INPUT, is not set!\n\n");
+    $ENV{'TIGGE_TOOLS'} ||
+        return("### $headline : Required ENV VAR : TIGGE_TOOLS, is not set!\n\n");
+
+    if( !(-d $ENV{'TIGGE_INPUT'}) )
+        { return("### $headline : \$TIGGE_INPUT is not set to a valid directory!\n\n"); }
+    if( !(-r $ENV{'TIGGE_INPUT'}) )
+        { return("### $headline : \$TIGGE_INPUT is not a readable directory!\n\n"); }
+
+    # Ensure input & output symlinks are in place
+    if( !(-e "$ENV{'TIGGE_TOOLS'}/input") )
+        { symlink("$ENV{'TIGGE_INPUT'}","$ENV{'TIGGE_TOOLS'}/input"); }
+    if( !(-e "$ENV{'TIGGE_TOOLS'}/output") )
+        { symlink("$ENV{'TIGGE_OUTPUT'}","$ENV{'TIGGE_TOOLS'}/output"); }
+
+     # Cannot allow the same cycle to be run by two different processes at once.
+    my $runLatestLOCKFILE = "$ENV{'TIGGE_OUTPUT'}/runLatest.LOCKFILE.$latestRun";
+    if( -e $runLatestLOCKFILE ) 
+    {
+        print STDOUT "\n *ABORTED*  This processes is currnetly running!\n";
+        print STDOUT "   If this persists, remove lock.  rm $runLatestLOCKFILE\n";
+        return;
+    }
+
+    my $latestRunPath = "$ENV{'TIGGE_INPUT'}/$latestRun";
+    my $tagFile = "${latestRunPath}/.completed";
+
+    # Begin work.  LOCK this cycle here.
+    # anything that breaks this loop must also unlink this LOCKFILE
+    open(my $theLOCKFILE,">",$runLatestLOCKFILE);
+    print $theLOCKFILE "$$\n".localtime(time);
+    close($theLOCKFILE);
+
+    print STDOUT "---------------------------------------------------\n";
+    print STDOUT "$latestRun\tLock: $runLatestLOCKFILE\n\n";
+    print STDOUT "$headline Checking : $latestRunPath for errors ...\n ";
+
+        # The QC is a long process and may be turned off with -noQC
+    if( $QC eq "yes" )
+    {
+        my @QCresults = ncdcTigge::qcGensCycle($latestRunPath);
+        if( $QCresults[0] !~ m/\*\-\*\-PASSED\-\*\-\*/ )
+            {
+            print STDOUT "$headline : Cycle $latestRun : Input QC did not pass!\n";
+            print STDOUT "  Returned information:\n".join("\n",@QCresults)."\n\n";
+            print "$headline Moving to next cycle.\n\n";
+            unlink($runLatestLOCKFILE);
+            return "Input failed QC";
+            }
+    }
+
+
+    # QC Passed, throw the switch!
+    # Note - the ncdcTigge application needs to be run with cwd ".", 
+    #   so a chdir needs to be called first
+
+    # This is the header conversion portion that NCAR used to do.
+    # it is a standalone process -- for now.
+    print STDOUT (`perl run_ncep_convert.pl $latestRun`);
+    print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $latestRun all
+    Is currently running\n\n");
+    chdir("$ENV{TIGGE_TOOLS}") || 
+        print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
+    my @execute = (`./bin/ncdcTigge $latestRun all`);
+
+    print STDOUT ("  Processor Finished.\n\n".localtime(time)."\n\noutput:\n");
+    print STDOUT join("\n",@execute)."\n\n";
+
+    # QC the results, and move to output/archive directory
+    print STDOUT "$headline Checking $latestRun Run output...\n\n";
+    my @qcOutputResults =  ncdcTigge::qcOutput($latestRun);
+    if( $qcOutputResults[0] ne "PASS" )
+        {
+        print STDOUT "### $0: Detected issues with output data\n";
+        print STDOUT "### $0: qcOutput Returned the following notices:\n";
+        print STDOUT join("\n",@qcOutputResults)."\n\n";
+        return "Output QC failed";
+        }
+    if( $qcOutputResults[0] eq "PASS" )
+        {
+            # Output is OK, proceeed with the final steps
+        print STDOUT "$0 : QC Passed.  Sending output to its archive directory...\n\n";
+        print STDOUT ncdcTigge::archiveOutput("_${latestRun}0000_",
+            "\^OUTPUT.QC.PASS.${latestRun}\$");
+        print STDOUT ncdcTigge::packCycle($latestRun);
+
+            # Mark a completed run with hidden file
+        open(TAG,">",$tagFile)
+          || print STDOUT "### $headline Error writing tag file!\n";
+        print TAG "$$\n".localtime(time);
+        close(TAG);
+        }
+
+    unlink($runLatestLOCKFILE);
+
+    print STDOUT "$headline Completed & Unlocked cycle $latestRun!\n\n\n";
+    print STDOUT "\n ===---===---===---===---===---===---===---===\n\n";
+}
+
+
 #                   runLatest
 #===========================================================================
 
@@ -945,148 +1063,14 @@ for( my $r = 0; $r < $NUMRUNS; $r++ )
     {
     my $latestRun = $uncompletedRuns[$r];
     if( !defined($latestRun) ) { next; }
-
-	 # Cannot allow the same cycle to be run by two different processes at once.
-    my $runLatestLOCKFILE = "$ENV{'TIGGE_OUTPUT'}/runLatest.LOCKFILE.$latestRun";
-    if( -e $runLatestLOCKFILE ) 
-	{
-	print STDOUT "\n *ABORTED*  This processes is currnetly running!\n";
-        print STDOUT "   If this persists, remove lock.  rm $runLatestLOCKFILE\n";
-	next;
+    runCycle($latestRun);
 	}
-
-    my $latestRunPath = "$ENV{'TIGGE_INPUT'}/$latestRun";
-    my $tagFile = "${latestRunPath}/.completed";
-
-	# Begin work.  LOCK this cycle here.
-	# anything that breaks this loop must also unlink this LOCKFILE
-	open(my $theLOCKFILE,">",$runLatestLOCKFILE);
-	print $theLOCKFILE "$$\n".localtime(time);
-	close($theLOCKFILE);
-
-	print STDOUT "---------------------------------------------------\n";
-	print STDOUT "\t(".int($r+1).")\t$latestRun\tLock: $runLatestLOCKFILE\n\n";
-	print STDOUT "$headline Checking : $latestRunPath for errors ...\n ";
-
-		# The QC is a long process and may be turned off with -noQC
- if( $QC eq "yes" )
-    {
-    my @QCresults = ncdcTigge::qcGensCycle($latestRunPath);
-    if( $QCresults[0] !~ m/\*\-\*\-PASSED\-\*\-\*/ )
-        {
-        print STDOUT "$headline : Cycle $latestRun : Input QC did not pass!\n";
-        print STDOUT "  Returned information:\n".join("\n",@QCresults)."\n\n";
-        print "$headline Moving to next cycle.\n\n";
-	unlink($runLatestLOCKFILE);
-        next;
-        }
-    }
-
-
-    # QC Passed, throw the switch!
-	# Note - the ncdcTigge application needs to be run with cwd ".", 
-	#	so a chdir needs to be called first
-
-
-		# This is the header conversion portion that NCAR used to do.
-		# it is a standalone process -- for now.
-    print STDOUT (`perl run_ncep_convert.pl $uncompletedRuns[$r] `);
-    # print STDOUT (`perl -d:Trace $ENV{'TIGGE_TOOLS'}/perl/run_ncep_convert.pl $uncompletedRuns[$r] `);
-    print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $uncompletedRuns[$r] all
-	Is currently running\n\n");
-	chdir("$ENV{TIGGE_TOOLS}") || 
-		print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
-    my @execute = (`./bin/ncdcTigge $uncompletedRuns[$r] all`);
-
-    print STDOUT ("  Processor Finished.\n\n".localtime(time)."\n\noutput:\n");
-    print STDOUT join("\n",@execute)."\n\n";
-
-	# QC the results, and move to output/archive directory
-	print STDOUT "$headline Checking $latestRun Run output...\n\n";
-	my @qcOutputResults =  ncdcTigge::qcOutput($uncompletedRuns[$r]);
-	if( $qcOutputResults[0] ne "PASS" )
-		{
-		print STDOUT "### $0: Detected issues with output data\n";
-		print STDOUT "### $0: qcOutput Returned the following notices:\n";
-		print STDOUT join("\n",@qcOutputResults)."\n\n";
-		}
-	if( $qcOutputResults[0] eq "PASS" )
-		{
-			# Output is OK, proceeed with the final steps
-		print STDOUT "$0 : QC Passed.  Sending output to its archive directory...\n\n";
-		print STDOUT ncdcTigge::archiveOutput("_${uncompletedRuns[$r]}0000_",
-			"\^OUTPUT.QC.PASS.${uncompletedRuns[$r]}\$");
-		print STDOUT ncdcTigge::packCycle($uncompletedRuns[$r]);
-
-		    # Mark a completed run with hidden file
-		open(TAG,">",$tagFile)
-    	  || print STDOUT "### $headline Error writing tag file!\n";
-		print TAG "$$\n".localtime(time);
-		close(TAG);
-		}
-
-	unlink($runLatestLOCKFILE);
-
-	print STDOUT "$headline Completed & Unlocked cycle $latestRun!\n\n\n";
-	print STDOUT "\n ===---===---===---===---===---===---===---===\n\n";
-	}
-
-# print "\n\n$headline -- Starting Uploader --\n\n";
-# 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# 	This was broken by the 2008-05-22 patch, 
-#	reinstate once Net::FTP is fixed by admin.
-#	using a system call to utility as a work-around
-# print STDOUT ncdcTigge::uploadResults();
-# print STDOUT (`$ENV{'TIGGE_TOOLS'}/perl/runUploader.pl`);
-# print "\n\n$headline -- Uploader finished --\n\n";
 
 return("\n$headline returned OK\n\n");
 }
 
 #       End         runLatest
 #===========================================================================
-
-
-
-
-
-
-#                   runCycle
-#===========================================================================
-
-sub runCycle($;$)
-{
-my $headline = "$0:ncdcTigge::runCycle(@_) : ";
-print STDOUT "\n$headline  Executed from $0 on $ENV{'HOSTNAME'} \@ ".localtime(time)."\n";
-
-my $DTG = shift(@_);
-my $QC = "yes";
-if ( scalar grep(/^-noQC/,@_) )
-    {  $QC = "no";  }
-
-$ENV{'TIGGE_INPUT'} ||
-    return("### $headline : Required ENV VAR : TIGGE_INPUT, is not set!\n\n");
-$ENV{'TIGGE_TOOLS'} ||
-    return("### $headline : Required ENV VAR : TIGGE_TOOLS, is not set!\n\n");
-
-if( !(-d $ENV{'TIGGE_INPUT'}) )
-    { return("### $headline : \$TIGGE_INPUT is not set to a valid directory!\n\n"); }
-if( !(-r $ENV{'TIGGE_INPUT'}) )
-    { return("### $headline : \$TIGGE_INPUT is not a readable directory!\n\n"); }
-
-my $latestRun = $DTG;
-my $latestRunPath = "$ENV{'TIGGE_INPUT'}/$latestRun";
-my $tagFile = "${latestRunPath}/.completed";
-
-return("$headline : ### SUBROUTINE NOT COMPLETE\n\n");
-}
-
-#       End         runCycle
-#===========================================================================
-
-
-
-
 
 
 #                   archiveOutput
