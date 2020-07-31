@@ -6,6 +6,8 @@ import subprocess
 import typing
 import shutil
 from functools import partial
+from pathlib import Path
+import argparse
 
 # Make sure print statements are flushed immediately, otherwise
 #   print statments may be out-of-order with subprocess output
@@ -16,11 +18,15 @@ max_iterations = 100
 n_members = 21
 forecast_hours = range(0, 385, 6)
 
-input_dir = os.environ['TIGGE_INPUT']
+input_dir = str(Path(__file__).parent.parent) + "/input"
 source_dir = subprocess.getoutput('compath.py gens/prod')
 source_pgrb2_dict = {'a': f"{source_dir}/gefs.%Y%m%d/%H/pgrb2a", 'b': f"{source_dir}/gefs.%Y%m%d/%H/pgrb2b"}
 filepattern = '{directory}/ge{member}.t%Hz.pgrb2{grib_type}f{forecast_hour:02d}'
 
+print(f'''
+	source_dir: {source_dir}
+	input_dir: {input_dir}
+	''')
 # Stop looking backwards after this many cycles don't have data
 # This value be at least 2 to account for the current run not having completed
 max_failures = 3
@@ -29,44 +35,33 @@ members = list(map(lambda m: f'c{m:02d}' if (m == 0) else f'p{m:02d}', range(0, 
 
 
 def main():
-	now = datetime.datetime.utcnow()
-	last_cycle = now.hour - (now.hour % cycle_frequency)
-	current_run = now.replace(hour=last_cycle, minute=0, second=0, microsecond=0)
+	parser = argparse.ArgumentParser(description="Creates symbolic links to 1.0 deg GEFS products for TIGGE")
+	parser.add_argument('time', type=lambda s: datetime.datetime.strptime(s, "%Y%m%d%H"), help="Cycle date in YYYYMMDDHH format")
 
-	print(now.strftime(f'Now: %Y%m%d_%H:%M:%S'))
-	print(current_run.strftime(f'Most recent cycle: %Y%m%d_%H:%M:%S'))
+	time = parser.parse_args().time
 
-	failures = 0
-	iterations = 0
+	print(time.strftime(f'Checking %Y%m%d_%H'))
+	destination_dir = time.strftime(f'{input_dir}/%Y%m%d%H')
+	source_filelist = get_source_filenames(time)
+	link_filelist = get_link_filenames(destination_dir, time)
 
-	while failures < max_failures and iterations < max_iterations:
-		print(current_run.strftime(f'Checking %Y%m%d_%H'))
-		destination_dir = current_run.strftime(f'{input_dir}/%Y%m%d%H')
-		source_filelist = get_source_filenames(current_run)
-		link_filelist = get_link_filenames(destination_dir, current_run)
-
-		if all([os.path.islink(f) for f in link_filelist]):
-			if all([os.path.isfile(f) for f in link_filelist]):
-				print('  Links already completed for this time')
-			else:
-				print('  Data no longer exists, removing old directory')
-				shutil.rmtree(destination_dir)
-
-		elif any([not os.path.isfile(f) for f in source_filelist]):
-			print("  Files don't exist for this time")
-			failures += 1
-
+	if all([os.path.islink(f) for f in link_filelist]):
+		if all([os.path.isfile(f) for f in link_filelist]):
+			print('  Links already completed for this time')
 		else:
-			print("  Creating links...")
-			os.makedirs(destination_dir, exist_ok=True)
+			print('  Data no longer exists, removing old directory')
+			shutil.rmtree(destination_dir)
 
-			for f in source_filelist:
-				os.symlink(f, f'{destination_dir}/{os.path.basename(f)}')
+	elif any([not os.path.isfile(f) for f in source_filelist]):
+		print("  Files don't exist for this time")
+		quit(100)
 
-		current_run = current_run - datetime.timedelta(hours=6)
-		iterations += 1
+	else:
+		print("  Creating links...")
+		os.makedirs(destination_dir, exist_ok=True)
 
-	print("Maximum failures reached, ending")
+		for f in source_filelist:
+			os.symlink(f, f'{destination_dir}/{os.path.basename(f)}')
 
 	exit(0)
 
