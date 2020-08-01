@@ -4,7 +4,7 @@
 **
 */
 #include "ncdcTigge.h"
-
+#include "stdlib.h"
 
 /*
 ** variableShortName
@@ -218,10 +218,10 @@ int writeGribToFile(grib_handle* gh, char* filename)
 
 	char totalFilename[128];
 	const void* buffer;
-	char* outputFilenamePrefix = OUTPUT_FILENAME_PREFIX;
-	
-	strcpy(totalFilename, outputFilenamePrefix);
-	strcat(totalFilename, filename);
+	char* outputFilenamePrefix = getenv("TIGGE_OUTPUT");
+
+	sprintf(totalFilename, "%s/%s", outputFilenamePrefix, filename);
+	printf("totalFilename: %s\n", totalFilename);
 	
 	FILE *outGribFile = fopen(totalFilename, "w");
 	
@@ -332,12 +332,12 @@ int generateFileName(int variableName, int yyyy, int mm, int dd, int hh, int fff
 */
 void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int fff, int em, char* fileName) {
 
-	char* newFileNamePrefix = INPUT_FILENAME_PREFIX;
+	char* newFileNamePrefix = getenv("TIGGE_INPUT");
 	char directoryString[12];
 	char modelEnsembleMember[3];
 	char fileLetter[3];
 
-	sprintf(directoryString, "%04d%02d%02d%02d/", yyyy, mm, dd, hh);
+	sprintf(directoryString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
 	if(fileNumber == 0)
 		strcpy(fileLetter, "a");
 	else
@@ -348,7 +348,9 @@ void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int
 	else
 		sprintf(modelEnsembleMember, "p%02d", em);
 
-	sprintf(fileName, "%s%sge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+	sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+
+	printf("Input file name: %s", fileName);
 
 	return;
 }

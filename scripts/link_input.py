@@ -18,15 +18,11 @@ max_iterations = 100
 n_members = 21
 forecast_hours = range(0, 385, 6)
 
-input_dir = str(Path(__file__).parent.parent) + "/input"
 source_dir = subprocess.getoutput('compath.py gens/prod')
 source_pgrb2_dict = {'a': f"{source_dir}/gefs.%Y%m%d/%H/pgrb2a", 'b': f"{source_dir}/gefs.%Y%m%d/%H/pgrb2b"}
 filepattern = '{directory}/ge{member}.t%Hz.pgrb2{grib_type}f{forecast_hour:02d}'
 
-print(f'''
-	source_dir: {source_dir}
-	input_dir: {input_dir}
-	''')
+
 # Stop looking backwards after this many cycles don't have data
 # This value be at least 2 to account for the current run not having completed
 max_failures = 3
@@ -39,6 +35,10 @@ def main():
 	parser.add_argument('time', type=lambda s: datetime.datetime.strptime(s, "%Y%m%d%H"), help="Cycle date in YYYYMMDDHH format")
 
 	time = parser.parse_args().time
+
+	input_dir = os.environ.get('TIGGE_INPUT')
+	if(input_dir is None):
+		input_dir = str(Path(__file__).parent.parent) + "/input"
 
 	print(time.strftime(f'Checking %Y%m%d_%H'))
 	destination_dir = time.strftime(f'{input_dir}/%Y%m%d%H')

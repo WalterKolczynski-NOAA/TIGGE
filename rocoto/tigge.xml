@@ -2,11 +2,11 @@
 <!DOCTYPE workflow
 [
 	<!ENTITY PSLOT "TIGGE">
-	<!ENTITY CYCLE_THROTTLE "1">
+	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY SDATE "2020072900">
-	<!ENTITY EDATE "2020072900">
-	<!ENTITY INCYC "6">
+	<!ENTITY SDATE "2020072906">
+	<!ENTITY EDATE "2020073000">
+	<!ENTITY INCYC "06">
 	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
 	<!ENTITY GEFS_COM "/gpfs/dell2/nco/ops/com/gens/prod">
 
@@ -21,7 +21,7 @@
 	<!ENTITY transfer_output SYSTEM "transfer_output.xml">
 ]>
 
-<workflow realtime="T" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
+<workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
 
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
 

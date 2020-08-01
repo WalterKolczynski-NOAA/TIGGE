@@ -4,9 +4,9 @@ set -x
 
 time=$1
 
-export TIGGE_TOOLS=$(dirname $(pwd))
-export TIGGE_INPUT="$TIGGE_TOOLS/input"
-export TIGGE_OUTPUT="$TIGGE_TOOLS/output"
+export TIGGE_TOOLS=${TIGGE_TOOLS:-$(dirname $(pwd))}
+export TIGGE_INPUT=${TIGGE_INPUT:-$TIGGE_TOOLS/input}
+export TIGGE_OUTPUT=${TIGGE_OUTPUT:-$TIGGE_TOOLS/output}
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$TIGGE_TOOLS/grib-api/lib"
 
 source $MODULESHOME/init/sh

@@ -18,8 +18,6 @@
 #define ENSEMBLE_MEMBERS 21
 #define FORECAST_HOURS 384
 #define NUMBER_OF_VARIABLES 13
-#define OUTPUT_FILENAME_PREFIX "output/"
-#define INPUT_FILENAME_PREFIX "input/"
 #define QUEUE_MAX 11
 
 

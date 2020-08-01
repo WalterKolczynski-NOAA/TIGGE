@@ -2,3 +2,11 @@
 	<name>TIGGE_PTMP</name>
 	<value>&TIGGE_PTMP;</value>
 </envar>
+<envar>
+	<name>TIGGE_INPUT</name>
+	<value>&TIGGE_PTMP;/input</value>
+</envar>
+<envar>
+	<name>TIGGE_OUTPUT</name>
+	<value>&TIGGE_PTMP;/output</value>
+</envar>

@@ -853,11 +853,9 @@ sub runCycle($;$) {
         return(2);
     }
 
-    # Ensure input & output symlinks are in place
-    if( !(-e "$ENV{'TIGGE_TOOLS'}/input") )
-        { symlink("$ENV{'TIGGE_INPUT'}","$ENV{'TIGGE_TOOLS'}/input"); }
-    if( !(-e "$ENV{'TIGGE_TOOLS'}/output") )
-        { symlink("$ENV{'TIGGE_OUTPUT'}","$ENV{'TIGGE_TOOLS'}/output"); }
+    if( !(-d $ENV{'TIGGE_OUTPUT'})) {
+        mkdir $ENV{'TIGGE_OUTPUT'} || die "Could not create output directory $ENV{'TIGGE_OUTPUT'}";
+    }
 
      # Cannot allow the same cycle to be run by two different processes at once.
     my $runLatestLOCKFILE = "$ENV{'TIGGE_OUTPUT'}/runLatest.LOCKFILE.$latestRun";
