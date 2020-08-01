@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE workflow
+[
+	<!ENTITY PSLOT "TIGGE">
+	<!ENTITY CYCLE_THROTTLE "1">
+	<!ENTITY TASK_THROTTLE "12">
+	<!ENTITY SDATE "2020072900">
+	<!ENTITY EDATE "2020072900">
+	<!ENTITY INCYC "6">
+	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
+	<!ENTITY GEFS_COM "/gpfs/dell2/nco/ops/com/gens/prod">
+
+	<!ENTITY ACCOUNT "GEN-T2O">
+	<!ENTITY SCHEDULER "lsf">
+	<!ENTITY SHARED_QUEUE "dev2_shared">
+	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
+
+	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
+	<!ENTITY link_input SYSTEM "link_input.xml">
+	<!ENTITY process_tigge SYSTEM "process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "transfer_output.xml">
+]>
+
+<workflow realtime="T" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
+
+	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
+
+	<cycledef group="tigge">&SDATE;00 &EDATE;00 &INCYC;:00:00</cycledef>
+	&link_input;
+	&process_tigge;
+	&transfer_output;
+
+</workflow>
+
+
+
+

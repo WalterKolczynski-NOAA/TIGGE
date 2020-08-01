@@ -1,0 +1,16 @@
+<task name="process_tigge" cycledefs="tigge" maxtries="1">
+	<jobname><cyclestr>proc_tigge_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/process_tigge.%J</cyclestr></join>
+	<walltime>04:30:00</walltime>
+	<queue>&SHARED_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<native>-R 'rusage[mem=4096]'</native>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/runTigge.sh @Y@m@d@H</cyclestr></command>
+	<dependency>
+		<taskdep task="link_input"/>
+	</dependency>
+</task>
