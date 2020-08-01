@@ -835,15 +835,23 @@ sub runCycle($;$) {
     if ( scalar grep(/^-noQC/,@_) )
         {  $QC = "no";  }
 
-    $ENV{'TIGGE_INPUT'} ||
-        return("### $headline : Required ENV VAR : TIGGE_INPUT, is not set!\n\n");
-    $ENV{'TIGGE_TOOLS'} ||
-        return("### $headline : Required ENV VAR : TIGGE_TOOLS, is not set!\n\n");
+    if( !defined $ENV{'TIGGE_INPUT'}) {
+        print STDOUT "### $headline : Required ENV VAR : TIGGE_INPUT, is not set!\n\n";
+        return(1);
+    }
+    if (!defined $ENV{'TIGGE_TOOLS'}) {
+        print STDOUT "### $headline : Required ENV VAR : TIGGE_TOOLS, is not set!\n\n";
+        return(1);
+    }
 
-    if( !(-d $ENV{'TIGGE_INPUT'}) )
-        { return("### $headline : \$TIGGE_INPUT is not set to a valid directory!\n\n"); }
-    if( !(-r $ENV{'TIGGE_INPUT'}) )
-        { return("### $headline : \$TIGGE_INPUT is not a readable directory!\n\n"); }
+    if( !(-d $ENV{'TIGGE_INPUT'}) ) {
+        print STDOUT "### $headline : \$TIGGE_INPUT is not set to a valid directory!\n\n";
+        return(2);
+    }
+    if( !(-r $ENV{'TIGGE_INPUT'}) ) {
+        print STDOUT "### $headline : \$TIGGE_INPUT is not a readable directory!\n\n";
+        return(2);
+    }
 
     # Ensure input & output symlinks are in place
     if( !(-e "$ENV{'TIGGE_TOOLS'}/input") )
@@ -857,7 +865,7 @@ sub runCycle($;$) {
     {
         print STDOUT "\n *ABORTED*  This processes is currnetly running!\n";
         print STDOUT "   If this persists, remove lock.  rm $runLatestLOCKFILE\n";
-        return;
+        return(3);
     }
 
     my $latestRunPath = "$ENV{'TIGGE_INPUT'}/$latestRun";
@@ -883,7 +891,8 @@ sub runCycle($;$) {
             print STDOUT "  Returned information:\n".join("\n",@QCresults)."\n\n";
             print "$headline Moving to next cycle.\n\n";
             unlink($runLatestLOCKFILE);
-            return "Input failed QC";
+            print STDOUT "Input failed QC";
+            return(10);
             }
     }
 
@@ -912,7 +921,8 @@ sub runCycle($;$) {
         print STDOUT "### $0: Detected issues with output data\n";
         print STDOUT "### $0: qcOutput Returned the following notices:\n";
         print STDOUT join("\n",@qcOutputResults)."\n\n";
-        return "Output QC failed";
+        print STDOUT "Output QC failed";
+        return(12);
         }
     if( $qcOutputResults[0] eq "PASS" )
         {
@@ -933,6 +943,7 @@ sub runCycle($;$) {
 
     print STDOUT "$headline Completed & Unlocked cycle $latestRun!\n\n\n";
     print STDOUT "\n ===---===---===---===---===---===---===---===\n\n";
+    return(0);
 }
 
 

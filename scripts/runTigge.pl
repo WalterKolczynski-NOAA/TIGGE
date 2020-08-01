@@ -16,8 +16,7 @@ use ncdcTigge 1.4 qw(runLatest cleanupLocation);
 #print(`echo "System Call test ok."`);
 
 my $startTime = time;
-# -- where the action happens --
-print STDOUT ncdcTigge::runCycle( $ARGV[0] );
+$err = ncdcTigge::runCycle( $ARGV[0] );
 
 print STDOUT "\n\n=============================================================\n\n";
 
@@ -26,4 +25,4 @@ my $endTime = time;
 my $elapsedTime = $endTime - $startTime;
 print "\n\n$0: Finished.  $elapsedTime sec.\n\n";
 
-exit 0;
+exit $err;
