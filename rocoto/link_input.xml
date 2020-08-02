@@ -9,7 +9,7 @@
 	<native>-R 'rusage[mem=1024]'</native>
 
 	&ENV_VARS;
-	<command><cyclestr>../scripts/link_input.py @Y@m@d@H</cyclestr></command>
+	<command><cyclestr>../scripts/link_input.sh @Y@m@d@H</cyclestr></command>
 	<dependency>
 		<!-- Make sure all final hour files are available and haven't been written in 5 min -->
 		<and>
