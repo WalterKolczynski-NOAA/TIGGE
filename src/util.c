@@ -221,7 +221,7 @@ int writeGribToFile(grib_handle* gh, char* filename)
 	char* outputFilenamePrefix = getenv("TIGGE_OUTPUT");
 
 	sprintf(totalFilename, "%s/%s", outputFilenamePrefix, filename);
-	printf("totalFilename: %s\n", totalFilename);
+	// printf("totalFilename: %s\n", totalFilename);
 	
 	FILE *outGribFile = fopen(totalFilename, "w");
 	
