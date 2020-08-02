@@ -124,7 +124,7 @@ cleanDevShm();	# make sure junk does not accumulate.
 print STDOUT "$0 proceeding to convert entire directory: [$inputDir] >> [$outputStash] ...\n\n";
 
 opendir(IN,$inputDir);
-my @files = sort grep(/\.pgrb2.(f\d{2,3}|anl)$/,readdir(IN));
+my @files = sort grep(/${ncdcTigge::gefs_filepattern}/,readdir(IN));
 closedir(IN);
 
 # tigge_split bombs output into the current working directory

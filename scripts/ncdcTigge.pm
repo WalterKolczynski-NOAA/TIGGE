@@ -9,13 +9,11 @@ use File::Basename;
 require Exporter;
 
 our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])f(\d{2,3})$);
-our $gefs_filepattern_a = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2(a)f(\d{2,3})$);
-our $gefs_filepattern_b = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2(b)f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => 	[
-   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle ) 
+   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN $gefs_filepattern &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle ) 
 								] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -610,8 +608,8 @@ if ( $#dirTags > -1 )
 	}
 
 undef my %filesPerMember;
-foreach my $thisFile ( @dirGrb )
-    {
+undef my %fileFound;
+foreach my $thisFile ( @dirGrb ) {
     my $thisPath = "${inDir}/$thisFile";
     if(  (-z $thisPath) ) { next; }
     if( !(-r $thisPath) ) { next; }
@@ -620,11 +618,11 @@ foreach my $thisFile ( @dirGrb )
          $thisFile =~ m/$gefs_filepattern/i;
     my $memberCode = "$inFileParseMem-$inFileParseType";
     $filesPerMember{$memberCode}++;
-    }
+    my $hourCode = "$inFileParseMem-$inFileParseType-$inFileParseFct";
+    $fileFound{$hourCode} = 1;
+}
 
-    # Run Fast, High-level Member/File-count check
-for( my $m = 0; $m <= 20; $m++ )
-    {
+for( my $m = 0; $m <= 20; $m++ ) {
     my $aKey = sprintf("%02d-%1s",$m,"a");
     my $bKey = sprintf("%02d-%1s",$m,"b");
 	if( !defined($filesPerMember{$aKey}) ) 
@@ -633,32 +631,25 @@ for( my $m = 0; $m <= 20; $m++ )
 		{ return("### $headline FAILED Member \# ${m}-b No files found!\n"); }
     my $aCount = $filesPerMember{$aKey};
     my $bCount = $filesPerMember{$bKey};
-    if( $aCount != $MEM_FILES)
-        {
-        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC )
-            {
-            my $fms = sprintf("%03d_%02d",$f,$m);
-            if( scalar grep(/$gefs_filepattern_a/,@dirGrb ) == 0 )
-              {
+    if( $aCount != $MEM_FILES) {
+        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
+            my $hourCode = sprintf("%02-a-%02",$m,$f);
+            if( !$fileFound{$hourCode} ) {
               print STDERR " ! MISSING A FILE: $inDir Member ${m} / Fct $f \n";
-              }
             }
+        }
         return("### $headline FAILED Member \# ${m}-a Does not contain $MEM_FILES files, ($aCount Found) \n");
-        }
-    if( $bCount != $MEM_FILES)
-        {
-        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC )
-            {
-            my $fms = sprintf("%03d_%02d",$f,$m);
-            if( scalar grep(/$gefs_filepattern_b/,@dirGrb ) == 0 )
-              {
-              print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
-              }
-            }
-        return("### $headline FAILED Member \# ${m}-b Does not contain $MEM_FILES.\n files, ($bCount Found) \n");
-        }
     }
-
+    if( $bCount != $MEM_FILES) {
+        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
+            my $hourCode = sprintf("%02-b-%02",$m,$f);
+            if( !$fileFound{$hourCode} ) {
+              print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
+            }
+        }
+        return("### $headline FAILED Member \# ${m}-b Does not contain $MEM_FILES.\n files, ($bCount Found) \n");
+    }
+}
     # Execute Slow, deep file scan on every file.
     #   accumulate errors/warnings in @tmp
 $| = 1;
