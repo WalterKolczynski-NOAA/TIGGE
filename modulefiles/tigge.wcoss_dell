@@ -1,0 +1,7 @@
+#%Module#####################################################
+## tigge - wcoss_dell
+#############################################################
+module load ips/18.0.5.274
+module load cmake/3.10.0
+module load jasper/1.900.29
+module load libpng/1.2.59

@@ -1,0 +1,16 @@
+<task name="transfer_output" cycledefs="tigge" maxtries="6">
+	<jobname><cyclestr>tigge_xfer_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/transfer_output.%J</cyclestr></join>
+	<walltime>01:00:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<memory>1000M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/transfer_output.sh @Y@m@d@H</cyclestr></command>
+	<dependency>
+		<taskdep task="process_tigge"/>
+	</dependency>
+</task>

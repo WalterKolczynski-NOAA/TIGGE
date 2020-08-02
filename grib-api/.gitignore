@@ -1,0 +1,6 @@
+Makefile
+**/Makefile
+config.log
+config.status
+libtool
+rpms/grib_api.spec

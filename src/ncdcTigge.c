@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 			generateInputFilename(0, year, month, day, hour, forecastHour, ensembleMember, aFileName);
 			generateInputFilename(1, year, month, day, hour, forecastHour, ensembleMember, bFileName);
 
-//			printf("opening : %s \& %s\n",aFileName,bFileName);
+			printf("opening : %s & %s\n",aFileName,bFileName);
 
 			aFile = fopen(aFileName, "r");
 			bFile = fopen(bFileName, "r");

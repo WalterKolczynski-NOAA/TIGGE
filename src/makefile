@@ -2,18 +2,16 @@
 # NCDC TIGGE project.
 # 2007-2016
 
-ifndef TIGGE_TOOLS
-$(error ENV VAR TIGGE_TOOLS is not set, this should be the base PATH where you exported the repository - it contains ./src ./bin, etc. )
-endif
+# ifndef TIGGE_TOOLS
+# $(error ENV VAR TIGGE_TOOLS is not set, this should be the base PATH where you exported the repository - it contains ./src ./bin, etc. )
+# endif
 
-ifndef PERL5LIB
-$(error ENV VAR PERL5LIB is not set, set to the PATH where your local perl libs are )
-endif
+TIGGE_TOOLS = $(CURDIR)/..
 
 CC = gcc
 CFLAGS = -Wall -g
-MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -ljasper
-MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include
+MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -L$(JASPER_LIBDIR) -ljasper
+MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include -I$(JASPER_INC)
 DIST_PREFIX = $(HOME)/tigge
 
 # Files Listed Here
@@ -47,8 +45,8 @@ test: ncdcTest
 # link the objects
 ncdcTigge: $(TIGGE_OBJ)
 	@echo ""
-	echo " - unpacking Pre-compiled GRIB API - "
-	tar -xf grib-api.1-13-0-CentOS6.tar.gz -C $(TIGGE_TOOLS)
+# 	echo " - unpacking Pre-compiled GRIB API - "
+# 	tar -xf grib-api.1-13-0-CentOS6.tar.gz -C $(TIGGE_TOOLS)
 	@echo "  Linking objects..."
 	@echo ""
 	$(CC) $(OBJ) $(TIGGE_OBJ) $(MYLIBS) -o $(TIGGE_BIN)
@@ -102,13 +100,12 @@ install:
 # Should check for $(TIGGE_BIN) here - but could not figure syntax.
 	@echo "bin is ready - Installing... "
 	@echo ""
-	cp $(TIGGE_BIN) $(TIGGE_TOOLS)/bin
-	cp -f ./$(TIGGE_BIN).pm $(PERL5LIB)
-	tar -xf perl-tigge.tar.bz2 -C $(TIGGE_TOOLS)/bin
+	mkdir -p $(TIGGE_TOOLS)/bin
+# 	tar -xf perl-tigge.tar.bz2 -C $(TIGGE_TOOLS)/bin
+	cp $(TIGGE_BIN) $(TIGGE_TOOLS)/bin/$(TIGGE_BIN)
+# 	cp -f ./$(TIGGE_BIN).pm $(TIGGE_TOOLS)/bin/$(TIGGE_BIN).pm
 	@echo ""
 	@echo " * Manual Post Install instructions *"
-	@echo "Ensure the three env vars TIGGE_TOOLS TIGGE_INPUT TIGGE_OUTPUT are properly set in your .bashrc, and PERL5LIB is set to the directory containing ncdcTigge.pm.  That should already be the case because the intaller copies the perl module into PERL5LIB - Verify this."
-	@echo ""
 	@echo " * Ensure the device hosting TIGGE_TOOLS/input and /output , and/or the target of TIGGE_INPUT / TIGGE_OUTPUT has adequate space.  Create symbolic links to larger partitions if needed."
 	@echo ""
 	@echo ""
