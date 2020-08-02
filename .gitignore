@@ -18,3 +18,5 @@ grib-api/lib/pkgconfig/grib_api_f90.pc
 grib-api/share/grib_api/definitions/grib1/grid_definition_8.def
 grib-api/include/grib_api.mod
 grib-api/src/config.h
+grib-api/perl/GRIB-API/Makefile.PL
+
