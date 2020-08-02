@@ -1,128 +1,78 @@
-THORPEX Interactive/International Grand Global Ensemble:
+THORPEX Interactive/International Grand Global Ensemble
 
-
-	NCEP-NCDC component.
-	Documentation
-	September 2017
-	Doc Author: Dan Swank (Apr.2016)   Revamp (Sept.2017)
-
+NCEP-EMC component
+Code Manager: Walter Kolczynski (Walter.Kolczynski@noaa.gov)
+Based substantially on previous version created by NCEI
 
 =========================================================
 
-NCEI Repository:   (your probably already in it)
+Repository location
 
-* git clone git@git.ncdc.noaa.gov:nomads/TIGGE.git
+https://github.com/WalterKolczynski-NOAA/TIGGE
 
-* svn checkout https://conman.ncdc.noaa.gov/svn-repos/nomads/TIGGE/
-	! Subversion repository retired to GIT in Aug.2017.
-	! for historic reference only -- Do not commit.
+=========================================================
 
+Build and installation
 
-Deployment, Use, and set up
-=
-Deployment is a manual process with some parts automated.
-Thus it requires a human, preferably familiar with C gnu-make PERL and Crontab.
+The build and installation has been combined in to a single scripts that can 
+be run in the src directory:
 
-This program consists of two major parts:
-1)  C-Code that builds with ECMWF GRIB API to calculate new data sections and updates GRIB2 headers.
-	Produces 15015 grib records per cycle.
+> cd src
+> ./build_install_all.sh
 
-2) Inherited code from NCAR that runs ECMWF GRIB_API tools that 
-	alter GRIB2 headers to conform to TIGGE requirements.
-	Produce approximately 80000 Grib2 records per cycle.
+This will build and install the ECMWF grib_api library as well as the NCEP TIGGE 
+executable. External library paths are loaded using LUA modules, with a single 
+module located in modulefiles that loads all of the necessary other modules.
 
- As of September 2017, this is a 5.1 GB tar package.
+Currently the system is only configured to run on NCEP operational machine 
+(WCOSS-Dell). Porting to additional systems will require an alterantive module 
+file and modification of the build script to load the new module file.
 
-There are numerous PERL wrappers and a module that orchestrate dataflow 
-  and aforementioned major components.
+=========================================================
 
+Configuration
 
+This system uses a rocoto workflow to control job submission to the scheduler. 
+Most modifyable settings are located in the workflow definition, tigge.xml. 
 
-Dependancies:
+CYCLE_THROTTLE:  Maximum number of cycles to run at once
+TASK_THROTTLE:   Maximum number of tasks to run at once
 
-This is a largely self-contained package.  It needs a few common things:
-* gcc & make
-* perl
-* ECMWF GRIB API (pre-compiled CentOS 5&6 version is included in repo)
-*	https://software.ecmwf.int/wiki/display/GRIB/Home
-* Input data from ftpprd.ncep.noaa.gov   and/or NCEI Archive.
-	Storage: (~32 GB per held cycle / 900 GB per week recommended retention)
-* 	Source: ftp://ftpprd.ncep.noaa.gov/pub/data/nccf/com/gens/prod/
-*	Backup Source : NCEI DSI 6177_06.  too much latency to prefer over the NCEP source.
-* 	If this data source dies, this program is useless until rewired to the new source.
+For a system running in real-time, these settings will rarely have an impact. 
+Effect will be limited to situations where the system is trying to 'catch up'.
 
+SDATE:           Start time
+EDATE:           End time
+INCYC:           Forecast cadence
 
+These control which dates will be run. For a real-time system, just set the end 
+date in the far future. There is a file dependency that will prevent the system 
+from running a cycle before it is time.
 
-Critical ENV VARS:
+TIGGE_PTMP:      Temporary location to store input, output, and logs
+GEFS_COM:        Location of 1-degree pgrb2a and pgrb2b files
 
-TIGGE_TOOLS
-	Set this to the base deployment directory, it usually ends in /tigge.  Not the /bin
-TIGGE_OUTPUT
-	Structure where programs write output.
-	The directory may be and should be a symbolic link.
-	Recommended storage device hosting TIGGE_OUTPUT should be at least 1 terabyte capacity.
-TIGGE_INPUT
-	Point to the directory structure containing input data.
-	Recommended storage is 1 terabyte per seven days of input you wish to retain.
-	The more cycles kept here, the easier it is to correct real-time problems 
-		before they become manual recall proceedures.
-	Recommend no less then three days.
-GRIB_DEFINITION_PATH
-	Always = $TIGGE_TOOLS/grib-api/share/grib_api/definitions
-GRIB_SAMPLES_PATH
-	Always: $TIGGE_TOOLS/grib-api/share/grib_api/samples
-	These two are needed for GRIB_API binaries to find their assets.
-export PERL5LIB
-	Point this to the directory containing PERL libaries found in this distribution. 
-		(perl-tigge.tar.bz2)
+ACCOUNT:         Job account for the scheduler
+SCHEDULER:       Scheduler type (i.e. lsf, slurm, or moabtorque)
+SHARED_QUEUE:    Job queue to use for compute jobs
+TRANSFER_QUEUE:  Job queue to use for transfer jobs (make external connections)
 
 
+Since rocoto is a passive workflow system that has to be run to update job status 
+and handle new job submission, an entry should be added to your crontab that calls 
+the rocoto/cron_rocoto.sh script. Recommend frequency is every five minutes.
 
-Install process:
+=========================================================
 
-Not as automatic as it could be.  But this will do the job.
+Tasks
 
-1#  git clone this distribution. (URL is above)
-2#  cd into it.
-3#  export the bashrc file that resides here.
-4#  export the following enviornment (REQUIRED)
-	export TIGGE_TOOLS="<the pwd>"
-	export PERL5LIB="<path to local perl libs>"
-		The main perl module that runs the utility programs is placed in here.
-5#  Tell the makefile where to find Jasper. (if non-standard)
-	export LIBS="-L<DIR path containing jasper.a>" /lib dir
-		ex.  export LIBS="-L/path/to/jasper/lib"
-	export INC="-I<DIR path containing jasper.h>" /include dir
-		ex.  export INC="-I/path/to/jasper/include"
-	o  If step #7 fails, you probably missed something here.
-6#  cd src
-7#  run [make]
-	This will unpack the ECMWF GRIB-API, that is pre-compiled to CentOS6
-	and proceed to use it to build the c code package.
-	If there are make erorrs. You may need to clean, configure, and re-compile the ECMWF GRIB API that was placed in (../grib-api)
-	ensure the binary ./ncdcTigge was actually created.
-8#  Install, run [make install]
-	This will slide everything necessary into $TIGGE_TOOLS/bin
-9#  cd ../bin
-10# Gather a cycle TIGGE_INPUT/<yyyymmddhh> of GENS files and test the distribution.
-	Paths to GRIB_API binaries (/bin) should be appended to your shell PATH.
-	Reference cron jobs below for help.
+This system has three tasks. All are serial jobs.
+	link_input:      Creates symlinks in $TIGGE_PTMP/input to the files in $GEFS_COM
+	process_tigge:   The main job; performs QC and creates files needed for TIGGE
+	transfer_output: Transfers the tigge tar file to the FTP server (on EMC rzdm) and 
+	                 also archives a copy on HPSS
 
-	perl runQcInput <yyyymmddhh> >&./rqi.log 
-        ncdcTigge <yyyymmddhh> all
-	perl runQcOutput.pl <yyyymmddhh>
-	perl run_ncep_convert.pl <yyyymmddhh> >&./rnc.log
-	perl finalize.pl <yyyymmddhh>
-
-	If you get PERL module errors.  Ensure ncdcTigge.pm is in your PERL5LIB path.
-	And use CPAN to install any further dependancies.
-	Do internet search if not familiar with CPAN.
-
-	Of course, ensure each step exits cleanly before proceeding to next.
-	The PERL wrappers are generally easy to tell.   The binary ncdcTigge requires 
-	  should be checked with runQcOutput.pl <yyyymmddhh>
-
-
+=========================================================
 
 Delivery to ECMWF:
 
@@ -134,7 +84,8 @@ Delivery to ECMWF:
 
  Delivery % is in the upper 90% per year - meaning a few missed cycles are OK.
 
- Currently the transfer is done through NOMADS FTP site.
+ Currently the transfer is done through EMC's FTP site (on rzdm).
+ 	Link: ftp://ftp.emc.ncep.noaa.gov/ufs/global/ensemble/tigge/
 
  The ECMWF Master archive is the only entity that needs the output data, so IP restrictions can 
    be implemented but thats not really needed as the data is rather harmless
@@ -143,134 +94,3 @@ Delivery to ECMWF:
 ECMWF Contact (general):   manuel.fuentes@ecmwf.int
 ECMWF Contact (technical): ioannis.mallas@ecmwf.int
 ECMWF Contact (?):         richard.mladek@ecmwf.int
-
-
-
-Automation:  crontab
-
-List of cron jobs to set up:
-
-The launcher scripts are held in REPO/cron and may be moved, just alter
-   the crontab execution path to match.
-Meep, its C Shell.. get over it - its just echo text & system calls.
-If you use them, must also set your $HOME/.cshrc to include the essential
-    ENV vars mentioned in the set up section or they will NOT work,
--
-[timings] $HOME/crontab/launch_tigge.csh 3  1>$HOME/crontab/logs/launch_tigge.log 2>&1
-[timings] $HOME/crontab/launch_tigge.csh -8 1>$HOME/crontab/logs/launch_tigge.log 2>&1
-[timings] $HOME/crontab/launch_tigge_ftp.csh 1>$HOME/crontab/logs/launch_tigge_ftp.log 2>&1
-[timings] $HOME/crontab/launch_tigge_Recover.csh 1>$HOME/crontab/logs/launch_tigge_Recover.log 2>&1
-[timings] $HOME/crontab/launch_tigge_Check.csh >$HOME/crontab/logs/tiggeRunCheck.log 2>&1
--
-[timings] represent the five unit cron timing specifications.
-Reference the cron daemon manual (man cron ? ) for details.
-
-The first two jobs run the processor, the first runs 3 of the newest cycles, and
-the second one runs eight of the oldest cycles (as a catch-up).  Systems vary, but its recommended
-to run the first one as often as it takes for one cycle to finish.
-The catch-up job should be run nightly at low-load times.  
-The numbers 3 & -8 represent number of days to process, and are freely adjustable.
-
-The third job obtains input data and should be run roughly 1-3 hourly.
-
-The fourth job is an input data recovery job.   It looks back a week checking files 
-   and automatically re-downloading missing inputs.   Should be run once a day at lest.
-   This will NOT replace corrupted files!  only checks existance.
-
-The fifth job is a e-mail notification for incomplete cycles.
-   See more about that on Monitoring section below.
-
-Finally, due to system & network oddities, another cron job on another machine had
-   to be used to cp the completeda *kwbc*.tar files to a properly exposed delivery directory.
-   This is a one line scp call using authorized keys.
-   This is actually good, as it separates the delivery directory and production directory.
-
-
-Monitoring:
-=
-
-Primary monitoring is done by e-mail.   The fifth cron job above launches a PERL program that
-scans the $TIGGE_OUTPUT/archive for the expected series of 6-hourly *kwbc*.tar units.
-It will check from the current date/time to the last file matching the pattern in the directory.  
-If none are present, nothing will happen.
-There needs to be at least one completed cycle, 
-thus one may want to belay turning this cron job on until 
-the automatic process is fully set up and churning out completed cycles.
-
-A cycle will verify OK if the tar package is present and meets a minimum file byte size 
-  ecified within the monitor script.  Currently this is around 4.5 GB.
-  Monitoring script does nothing more then this.
-
-E-mails should be sent to a group address.
-
-This currently (Sept.2017) is: 
-
-* To:   ncdc.nomadsmonitoring@noaa.gov
-* Subj: [NCDC-TIGGE ./runCheck.pl] TIGGE run report
-
-
-Fixing problems:
-=
-
-There is no rigid-methodical proceedure for doing this.
-
-The general way, starts by noticing that a cycle has gone uncompleted for over 24 hours.
-Monitoring staff need to glance over the monitoring e-mail daily.
-Cycles ealier then this may still be running.
-
-There are three major reasons cycles will fail:
-
-1# Damaged or Missing Input data
-2# Server reboot interrupts a running cycle
-3# Full Disk
-
-So --
-
-cd to $TIGGE_TOOLS/bin and run perl ./runQcInput <yyyymmddhh>.
-Don't watch it, come back in 15 mins and see if it passed or failed.
-Most likely, it found 1 or several bad files.
-If so -- rm these files then run ./runRecoverInput.pl to recover fresh copies.
-Rerun ./runQcInput.pl -- If it succeeds, the next automatic run will take care of it.
-If it does not... There are larger problems... perhaps #2 or #3 listed above.
-Read the logs produced by the cron jobs... and good luck.  If its not #1-3 above, your
-heading into - read the source code - territory.
-
-Check the NWS TINS for any change notices to the input files.
-(internet search - NWS TIN ensemble )
-
-Unfortunately & Rarely, 
- input file producer change will be made that will require an update to the 
- ECMWF GRIB API and even source code changes.  Call your local C programmer
- and pay them well..
-
-This program sequence produces about 80000 files for one cycle.
-Ensuring its all correct is very tedious.  Hope the output check
-routines do it right.
-
-If an output cycle is missed and goes beyond the 7 day window for retaining input data...
-One can use manual-sequencer1 and 2 PERL scripts in /bin to rerun old cycles.  You will need to
-  reobtain  the input data by any means necessary and check the first few lines of the PERL
- scripts on how to run them.
-Create yourself an isolated Manual/Development area.
-Branch your .bashrc to match the directories in the development area and source it whenever you
-   need to go manual.
-Avoid placing rerun input data into the standard $TIGGE_INPUT directory area!
-Or it will probably get immediately deleted by the standard cron'ed purger.
-
-
-
-In case of reboot interruption:
-
-If the server gets rebooted for whatever reason during an active run, stuff needs to be cleaned up or that cycle will sit in a locked state.
-
-shell command [ perl $TIGGE_TOOLS/bin/cleanupRun.pl 2018121700 ]
-Will unlock the cycle 2018121700 ensuring everything is deleted, replace yyyymmddhh for any interrupted cycle. 
-Check the latest log in the set $HOME/crontab/logs/runTigge.*.log scroll to the bottom to figure which cycle got interrupted.
-
-
-Misc notes:
-
-* Cycles to run are determined by the existance of a directories in TIGGE_INPUT/yyyymmddhh
-* Runs are deemed completed using a flag file:  TIGGE_INPUT/yyyymmddhh/.complete
-	removing this will trigger a rerun.
-* The input and output QC routines also keep a flag file that needs to be removed to rerun the QC.
