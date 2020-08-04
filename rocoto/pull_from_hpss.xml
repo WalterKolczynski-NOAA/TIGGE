@@ -1,0 +1,13 @@
+<task name="pull_from_hpss" cycledefs="tigge" maxtries="1">
+	<jobname><cyclestr>pull_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/pull_from_hpss.%J</cyclestr></join>
+	<walltime>03:00:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<native>-R 'rusage[mem=1024]'</native>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/pull_from_hpss.sh @Y@m@d@H</cyclestr></command>
+</task>
