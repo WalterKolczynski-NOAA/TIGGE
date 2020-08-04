@@ -10,3 +10,7 @@
 	<name>TIGGE_OUTPUT</name>
 	<value>&TIGGE_PTMP;/output</value>
 </envar>
+<envar>
+	<name>GEFS_COM</name>
+	<value>&GEFS_COM;</value>
+</envar>
