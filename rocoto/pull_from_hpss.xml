@@ -1,4 +1,4 @@
-<task name="pull_from_hpss" cycledefs="tigge" maxtries="1">
+<task name="pull_from_hpss" cycledefs="tigge" maxtries="5">
 	<jobname><cyclestr>pull_@Y@m@d_@H</cyclestr></jobname>
 	<account>&ACCOUNT;</account>
 	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/pull_from_hpss.%J</cyclestr></join>
