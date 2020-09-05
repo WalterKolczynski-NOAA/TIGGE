@@ -11,11 +11,30 @@ import contextlib
 #   print statments may be out-of-order with subprocess output
 print = partial(print, flush=True)
 
-hpss_pgrb2a_pattern = '/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar'
-hpss_pgrb2b_pattern = '/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar'
 htar_command = 'htar -xvf {file}'
-
 destination_pattern = '{com}/gefs.%Y%m%d/%H'
+
+
+def get_pgrb2a_pattern(time: datetime.datetime) -> str:
+	if datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
+		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
+	elif datetime.datetime(2019, 8, 20, 0) <= time < datetime.datetime(2020, 2, 26, 0):
+		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
+	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.now():
+		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
+	else:
+		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
+
+
+def get_pgrb2b_pattern(time: datetime.datetime) -> str:
+	if datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
+		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
+	elif datetime.datetime(2019, 8, 20, 0) <= time < datetime.datetime(2020, 2, 26, 0):
+		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
+	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.now():
+		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
+	else:
+		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
 
 
 def main():
@@ -36,8 +55,8 @@ def main():
 
 	os.chdir(destination)
 
-	subprocess.check_call(htar_command.format(file=time.strftime(hpss_pgrb2a_pattern)), shell=True)
-	subprocess.check_call(htar_command.format(file=time.strftime(hpss_pgrb2b_pattern)), shell=True)
+	subprocess.check_call(htar_command.format(file=get_pgrb2a_pattern(time)), shell=True)
+	subprocess.check_call(htar_command.format(file=get_pgrb2b_pattern(time)), shell=True)
 
 	print(f"{__file__} completed successfully")
 
