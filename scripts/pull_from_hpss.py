@@ -20,7 +20,7 @@ def get_pgrb2a_pattern(time: datetime.datetime) -> str:
 		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
 	elif datetime.datetime(2019, 8, 20, 0) <= time < datetime.datetime(2020, 2, 26, 0):
 		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
-	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.now():
+	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.datetime.now():
 		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
 	else:
 		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
@@ -31,7 +31,7 @@ def get_pgrb2b_pattern(time: datetime.datetime) -> str:
 		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
 	elif datetime.datetime(2019, 8, 20, 0) <= time < datetime.datetime(2020, 2, 26, 0):
 		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
-	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.now():
+	elif datetime.datetime(2020, 2, 26, 0) <= time < datetime.datetime.now():
 		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
 	else:
 		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
