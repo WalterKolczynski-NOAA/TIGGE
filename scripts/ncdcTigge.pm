@@ -1275,9 +1275,7 @@ my $archiveDir        = "${outputDir}/archive";
 my $archiveTargetDir  = "${outputDir}/archive/${cycle}";
 my $statusFileAux     = "${outputDir}/OUTPUT.QC.PASS.${cycle}";
 my $statusFile        = "${archiveTargetDir}/OUTPUT.QC.PASS.${cycle}";
-my $tarzFile1         = "${archiveDir}/gens-tigge_3_${cycle}.tar";
 my $masterArchive     = "${archiveDir}/tigge-kwbc-${cycle}.tar";
-my $tarzFile2         = "${archiveDir}/gens-ncdc_3_${cycle}.g2.tar.gz";
 
 if( !(-d $archiveTargetDir) )
     { return("### $headline No such archive directory: $archiveTargetDir\n"); }
@@ -1310,37 +1308,21 @@ opendir( DIR,$archiveTargetDir );
 closedir(DIR);
 
 ncdcTigge::mergeRecords( $archiveTargetDir, $archiveTargetDir, $cycle );
-
-my @tarRtn =  (`tar --exclude=*gens-ncdc*.grb2 --exclude=*.tar.gz --exclude=*OUTPUT.QC* -cf $tarzFile1 *`);
-
 print STDOUT "Merging into master archive: $masterArchive\n\n";
-print STDOUT (`tar --concatenate --file=$masterArchive $tarzFile1 `);
-unlink($tarzFile1);   # DLS 2019-03  cleans up unneeded tmp. file
+unlink($masterArchive);
+my @tarRtn =  (`tar -cf $masterArchive z_tigge_c_kwbc_${cycle}0000_*.grib`);
 
 if( @tarRtn ) 
 	{
-	print STDOUT "$headline $tarzFile1 Returned @tarRtn\n\n";
-	return("### $headline  Returned from tar $tarzFile1:  @tarRtn\n\n");
+	print STDOUT "$headline $masterArchive Returned @tarRtn\n\n";
+	return("### $headline  Returned from tar $masterArchive:  @tarRtn\n\n");
 	}
 
 my @rtn = ncdcTigge::mergeCycleMembers($cycle);
 print STDOUT "ncdcTigge::mergeCycleMembers Call returned:\n@rtn\n\n";
 
-print STDOUT "$headline Creating Tar file for NCDC Archive...\n\n";
-chdir($archiveTargetDir);
-
-# Originally intended to produce archive output for NCDC archive... it does not need to be done...
-# my @tarRtn2 =  (`tar -czf $tarzFile2 ./gens-ncdc*.grb2`);
-#if( @tarRtn2 )
-#    {
-#    print STDOUT "$headline Returned @tarRtn\n\n";
-#    return("### $headline  Returned from tar\#2:  @tarRtn2\n\n");
-#    }
-#
-
-	# Flag the status file as sucesssfully processed
+# Flag the status file as sucesssfully processed
 push(@statusInfo,"\nDATA_PACKAGED_SUCCESSFULLY ".localtime(time)."\n");
-push(@statusInfo,"$tarzFile1\n","$tarzFile2\n");
 open(STSOUT,">",$statusFile);
 print STSOUT @statusInfo;
 close(STSOUT);
