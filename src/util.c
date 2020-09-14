@@ -350,8 +350,6 @@ void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int
 
 	sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
 
-	printf("Input file name: %s", fileName);
-
 	return;
 }
 
