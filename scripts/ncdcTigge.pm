@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use File::Basename;
+use File::Path;
 
 require Exporter;
 
@@ -860,11 +861,23 @@ sub runCycle($;$) {
     my $latestRunPath = "$ENV{'TIGGE_INPUT'}/$latestRun";
     my $tagFile = "${latestRunPath}/.completed";
 
-    # Begin work.  LOCK this cycle here.
+        # Begin work.  LOCK this cycle here.
     # anything that breaks this loop must also unlink this LOCKFILE
     open(my $theLOCKFILE,">",$runLatestLOCKFILE);
     print $theLOCKFILE "$$\n".localtime(time);
     close($theLOCKFILE);
+
+    if( -d "$ENV{'TIGGE_OUTPUT'}/$latestRun" ) {
+        print STDOUT qq(Removing output directory $ENV{'TIGGE_OUTPUT'}/$latestRun\n);
+        rmtree("$ENV{'TIGGE_OUTPUT'}/$latestRun");
+    }
+
+    if( -d "$ENV{'TIGGE_OUTPUT'}/archive/$latestRun" ) {
+        print STDOUT qq(Removing archive directory $ENV{'TIGGE_OUTPUT'}/archive/$latestRun\n);
+        rmtree("$ENV{'TIGGE_OUTPUT'}/archive/$latestRun");
+    }
+
+    unlink("$ENV{'TIGGE_OUTPUT'}/archive/tigge-kwbc-${latestRun}.tar");
 
     print STDOUT "---------------------------------------------------\n";
     print STDOUT "$latestRun\tLock: $runLatestLOCKFILE\n\n";
@@ -895,8 +908,7 @@ sub runCycle($;$) {
     print STDOUT (`perl run_ncep_convert.pl $latestRun`);
     print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $latestRun all
     Is currently running\n\n");
-    chdir("$ENV{TIGGE_TOOLS}") || 
-        print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
+    chdir("$ENV{TIGGE_TOOLS}") || print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
     my @execute = (`./bin/ncdcTigge $latestRun all`);
 
     print STDOUT ("  Processor Finished.\n\n".localtime(time)."\n\noutput:\n");
@@ -1078,7 +1090,7 @@ return("\n$headline returned OK\n\n");
 
 sub archiveOutput(;@)
 {
-my $headline = "$0:ncdcTigge::runCycle(@_) : ";
+my $headline = "$0:ncdcTigge::archiveOutput(@_) : ";
 my $thisHOST = "Unknown Host";
 if( defined($ENV{'HOSTNAME'}) )		{ $thisHOST = $ENV{'HOSTNAME'}; }
 print STDOUT "\n$headline Run on $thisHOST \@ ".localtime(time)."\n";
@@ -1477,12 +1489,13 @@ sub mergeRecords($$$)
 			my $patt = "_${lv}_\\d{4}_${m}.*\\.grib\$";
 			my @set = grep( /$patt/, @allFiles );
 			my $OUTFILE = "${dirOut}/${ofn}";
+
 			open( OUTF, ">>", $OUTFILE ) || return(4);
 			binmode(OUTF);
 
 			my $sizetest = 0;
 			if( -e $OUTFILE )   # outfile is being concatenated onto, so adjust.
-				{ $sizetest = (-s $OUTFILE)  }
+				{ $sizetest = (-s $OUTFILE);  }
 			foreach my $inf ( sort @set ) 
 				{
 				$sizetest += (-s "${dir}/$inf");
