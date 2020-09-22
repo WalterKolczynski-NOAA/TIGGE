@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 	printf("=========================================================\n\n");
 
 	// for each ensemble member, we are going to generate all the variables.
-	for(ensembleMember = 0; ensembleMember < ENSEMBLE_MEMBERS; ensembleMember++)
+	for(ensembleMember = 0; ensembleMember < get_n_members(year, month, day, hour); ensembleMember++)
 		{
 		//printf("Ensemble Member: %d\n  ", ensembleMember);
 

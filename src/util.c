@@ -348,9 +348,22 @@ void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int
 	else
 		sprintf(modelEnsembleMember, "p%02d", em);
 
-	sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+	if( strcmp(directoryString, "2020091312") < 0 )
+		sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+	else
+		sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%s.0p50.f%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);		
 
 	return;
+}
+
+int get_n_members(int yyyy, int mm, int dd, int hh) {
+	char dateString[12];
+	sprintf(dateString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
+
+	if( strcmp(dateString, "2020091312") < 0 )
+		return 21;
+	else
+		return 31;
 }
 
 /* timeAdd()

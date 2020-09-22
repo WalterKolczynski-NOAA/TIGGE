@@ -15,7 +15,7 @@
 #include <time.h>
 #include <math.h>
 
-#define ENSEMBLE_MEMBERS 21
+// #define ENSEMBLE_MEMBERS 21
 #define FORECAST_HOURS 384
 #define NUMBER_OF_VARIABLES 13
 #define QUEUE_MAX 11
@@ -69,6 +69,7 @@ void fillQueueWithBogusData();
 int writeGribToFile(grib_handle*, char*);
 int generateFileName(int, int, int, int, int, int, int, char*);
 void generateInputFilename(int, int, int, int, int, int, int, char*);
+int get_n_members(int, int, int, int);
 void timadd (struct dt *, struct dt *);
 int qleap (int);
 void timeAdd (struct dt *dtim, struct dt *dto);
