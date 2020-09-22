@@ -21,8 +21,10 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
     char fileName[128];
 
 	// SIZE DEFS
-    size_t ncepValuesSize = 65160;
-
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	
 	// GRIB RECORD HANDLES
 	grib_handle* gh = NULL;
     grib_handle* ncepTotalRainfall = NULL;
@@ -37,7 +39,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
     // START
 
     // Define array to hold time integration values
-    runningSum = calloc(65160, sizeof(double));
+    runningSum = calloc(ncepValuesSize, sizeof(double));
     // Ensure allocation was successful
     if(runningSum == NULL)
 		{
@@ -104,19 +106,19 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 	//printf("%s\n", fileName);
 	// reset the current fff's values.
         tiggeTimeIntegratedSnowFallWaterEquivalentValues = 
-	  calloc(65160, sizeof(double));
+	  calloc(ncepValuesSize, sizeof(double));
 	
         if( fff == 0)
 	  {
             //	Forecast hr 0's values are always zero
-            for( i=0; i<65160; i++ )
+            for( i=0; i<ncepValuesSize; i++ )
 	      {
                 runningSum[i] = 0.0;
                 tiggeTimeIntegratedSnowFallWaterEquivalentValues[i] = 0.0;
 	      }
 	  }
 	else{
-	  for(i=0; i<65160; i++)
+	  for(i=0; i<ncepValuesSize; i++)
 	    {
 	      // Do the integration
 	      runningSum[i] += ncepValues[i];
@@ -131,7 +133,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 	}
 	
 	// now create a new grib_handle to store the data.
-	gh = newGribRecord( yyyy, mm, dd, hh, fff, em );
+	gh = newGribRecord( yyyy, mm, dd, hh, fff, em, n_lat, n_lon );
 	// Set MetaData
 	GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 	GRIB_CHECK(grib_set_long(gh, "parameterCategory", 1), 0);
@@ -180,7 +182,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 	
         // store the data into the grib file
         GRIB_CHECK( grib_set_double_array(gh, "values", 
-					  tiggeTimeIntegratedSnowFallWaterEquivalentValues, 65160),  0);
+					  tiggeTimeIntegratedSnowFallWaterEquivalentValues, ncepValuesSize),  0);
 	
 	// Outputs the resulting file!
         writeGribToFile(gh, fileName);
@@ -222,7 +224,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, ncepValuesSize);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT,
@@ -381,7 +383,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 	// Allocate and initialize (nx*ny) doubles - to hold the data
 	//		& Perform allocation check
 	tiggeTimeIntegratedSnowFallWaterEquivalentValues =
-		 calloc(65160, sizeof(double));
+		 calloc(ncepValuesSize, sizeof(double));
 	if( tiggeTimeIntegratedSnowFallWaterEquivalentValues == NULL)
 		{
 		fprintf(stderr, "Error, There was a problem Allocating the memory for storing the data. Exiting generateTimeIntegratedSnowFallWaterEquivalent()\n");
@@ -389,7 +391,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 		}	
 	
 	// for each point in the grid.
-	for(i=0; i<65160; i++)
+	for(i=0; i<ncepValuesSize; i++)
 		{
 			// Entire grid undefined @ fct=0
 		if(fff == 0)
@@ -419,7 +421,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 		}
 	
 	// store the new data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSnowFallWaterEquivalentValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSnowFallWaterEquivalentValues, ncepValuesSize),  0);
 	
 	if( writeGribToFile(gh, fileName) != 0 )
 		{
@@ -467,7 +469,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
 **  void**     The array of pointers where the data was stored.
 **
 */
-void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
+void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int n_lat, int n_lon)
 	{
 
 //	printf("\nEntered sub loadDataForTiSFWE\n");
@@ -491,8 +493,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
     double* tiggeTimeIntegratedSnowFallWaterEquivalentValues = NULL;
 
     size_t size = 0;
-    size_t ncepCategoricalSnowfallSize = 65160;
-    size_t ncepTotalRainfallSize = 65160;
+    size_t ncepValuesSize = n_lat * n_lon;
 
 		// Is the a file here?
     if(aFile == NULL)
@@ -585,8 +586,8 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 			found1++;
 //            printf("Found APCP\n");
 				// Get data section size, create & check buffer
-			GRIB_CHECK(grib_get_size( h1, "values", &ncepTotalRainfallSize), 0);
-			ncepTotalRainfallValues = calloc( ncepTotalRainfallSize, sizeof(double));
+			GRIB_CHECK(grib_get_size( h1, "values", &ncepValuesSize), 0);
+			ncepTotalRainfallValues = calloc( ncepValuesSize, sizeof(double));
 			if( ncepTotalRainfallValues == NULL)
 				{
 				fprintf(stderr, "Error, There was a problem Allocating the memory for storing the APCP data. Exiting generateSnowFallWaterEquivalent()\n");
@@ -594,7 +595,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 				}
 
 			int rtn = grib_get_double_array(h1, "values", 
-					ncepTotalRainfallValues, &ncepTotalRainfallSize);
+					ncepTotalRainfallValues, &ncepValuesSize);
             if( rtn != 0 )
                 { printf("\tError Loading APCP values : rtn code %d\n",rtn); }
 			}
@@ -607,9 +608,9 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 //			printf("Found C.SNOW\n");
 				// Clear buffer, if its not already
 			GRIB_CHECK(grib_get_size( h1, "values",
-					&ncepCategoricalSnowfallSize), 0);
+					&ncepValuesSize), 0);
 			ncepCategoricalSnowfallValues = 
-					calloc( ncepCategoricalSnowfallSize, sizeof(double));
+					calloc( ncepValuesSize, sizeof(double));
 			if( ncepCategoricalSnowfallValues == NULL)
 				{
 				fprintf(stderr, "Error, There was a problem Allocating the memory for storing the CAT.SNOW data. Exiting generateSnowFallWaterEquivalent()\n");
@@ -617,7 +618,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 				}
 
 			int rtn = grib_get_double_array(h1, "values",
-					ncepCategoricalSnowfallValues, &ncepCategoricalSnowfallSize );
+					ncepCategoricalSnowfallValues, &ncepValuesSize );
 			if( rtn != 0 ) 
 				{ printf("\tError Loading C.SNOW values : rtn code %d\n",rtn); }
 			}
@@ -626,7 +627,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 		}		// END Loop over records
 
 	tiggeTimeIntegratedSnowFallWaterEquivalentValues =
-			calloc(65160, sizeof(double));
+			calloc(ncepValuesSize, sizeof(double));
 	if( tiggeTimeIntegratedSnowFallWaterEquivalentValues == NULL)
 		{
 		fprintf(stderr, "Error, There was a problem Allocating the memory for storing the data. Exiting generateTimeIntegratedSnowFallWaterEquivalent()\n");
@@ -634,7 +635,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 		}
 
 		    // for each point in the grid.
-	for( i=0; i<65160; i++ )
+	for( i=0; i<ncepValuesSize; i++ )
 		{
 
 		if( setDummy > 0 ) 
@@ -660,13 +661,13 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 		// Close existing handle, and make a new one to export data section
 		//	We don't care about the metadata in this handle
 	grib_handle_delete(h1);
-	h2 = newGribRecord( 1, 1, 1, 0, 0, 1 );
+	h2 = newGribRecord( 1, 1, 1, 0, 0, 1, n_lat, n_lon );
 
 	// Computations finished at this point
 	//   now prep. to load the new data into appropriate buffers
 
     GRIB_CHECK( grib_set_double_array(h2, "values", 
-			tiggeTimeIntegratedSnowFallWaterEquivalentValues, 65160),  0);
+			tiggeTimeIntegratedSnowFallWaterEquivalentValues, ncepValuesSize),  0);
 
     GRIB_CHECK(grib_get_long( h2, "totalLength", &sizeLong), 0);
     size = (size_t)sizeLong;
@@ -757,9 +758,9 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 		}
 
 		// array for the new values to be stored.
-	newValues = calloc(65160, sizeof(double));
-	oldValues1 = calloc(65160, sizeof(double));
-	oldValues2 = calloc(65160, sizeof(double));
+	newValues = calloc(ncepValuesSize, sizeof(double));
+	oldValues1 = calloc(ncepValuesSize, sizeof(double));
+	oldValues2 = calloc(ncepValuesSize, sizeof(double));
 
 		// Snag the data section from where the grib handle stopped seeking
 	GRIB_CHECK(
@@ -767,7 +768,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 	GRIB_CHECK(
 		grib_get_double_array(h2, "values", oldValues2, &oldValues2Size), 0);
 
-	for(i = 0; i < 65160; i++)
+	for(i = 0; i < ncepValuesSize; i++)
 		{
 		newValues[i] = oldValues1[i] + oldValues2[i];
 		//printf("%f + %f = %f\n", oldValues1[i], oldValues2[i], newValues[i]);
@@ -775,7 +776,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers)
 		}
 
 	// write the values back into the grib handle.
-	GRIB_CHECK( grib_set_double_array(h1, "values", newValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(h1, "values", newValues, ncepValuesSize),  0);
 
 	//printf("%ld, %ld, %ld, %ld\n", ncepDiscipline, ncepCategory, ncepVariable, ncepLevel);
 	

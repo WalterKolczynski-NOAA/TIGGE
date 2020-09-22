@@ -10,11 +10,12 @@
 void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepCategoricalSnowfall = NULL;
-	size_t ncepCategoricalSnowfallSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	double* ncepCategoricalSnowfallValues = NULL;
 	
 	grib_handle* ncepTotalRainfall = NULL;
-	size_t ncepTotalRainfallSize = 65160;
 	double* ncepTotalRainfallValues = NULL;
 	
 	double* tiggeSnowfallWaterEquivalentValues = NULL;	
@@ -60,7 +61,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(SNOW_FALL_WATER_EQUIVALENT, yyyy, mm, dd, hh, fff, em, fileName);
@@ -135,17 +136,17 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 		}
 		
 		// test the data.
-		GRIB_CHECK(grib_get_size(ncepCategoricalSnowfall, "values", &ncepCategoricalSnowfallSize), 0);
+		GRIB_CHECK(grib_get_size(ncepCategoricalSnowfall, "values", &ncepValuesSize), 0);
 		//printf("ncepCategoricalSnowfallSize = %d\n", ncepCategoricalSnowfallSize);
 		
 		//printf("%ld - %ld - %ld\n", ncepDiscipline, ncepParameterCategory, ncepParameterNumber);
 
-		ncepCategoricalSnowfallValues = calloc(ncepCategoricalSnowfallSize, sizeof(double));
+		ncepCategoricalSnowfallValues = calloc(ncepValuesSize, sizeof(double));
 		if(ncepCategoricalSnowfallValues == NULL){
 			fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Categorical Rainfall.   Exiting...\n");
 			exit(1);
 		}
-		GRIB_CHECK(grib_get_double_array(ncepCategoricalSnowfall, "values", ncepCategoricalSnowfallValues, &ncepCategoricalSnowfallSize), 0);
+		GRIB_CHECK(grib_get_double_array(ncepCategoricalSnowfall, "values", ncepCategoricalSnowfallValues, &ncepValuesSize), 0);
 
 		
 		//
@@ -171,14 +172,14 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 			//printf("Discipline = %ld   Category = %ld   Number = %ld\n", ncepDiscipline, ncepParameterCategory, ncepParameterNumber);  
 		}
 		// we have the grib_handle now.
-		GRIB_CHECK(grib_get_size(ncepTotalRainfall, "values", &ncepTotalRainfallSize), 0);
-		ncepTotalRainfallValues = calloc(ncepTotalRainfallSize, sizeof(double));
+		GRIB_CHECK(grib_get_size(ncepTotalRainfall, "values", &ncepValuesSize), 0);
+		ncepTotalRainfallValues = calloc(ncepValuesSize, sizeof(double));
 		if(ncepTotalRainfallValues == NULL){
 			fprintf(stderr, "Error (ncepTotalRainfall) There was a problem Allocating the memory for storing the data. Exiting generateSnowFallWaterEquivalent()\n");
 			exit(1);
 		}	
 	
-		GRIB_CHECK(grib_get_double_array(ncepTotalRainfall, "values", ncepTotalRainfallValues, &ncepTotalRainfallSize), 0);
+		GRIB_CHECK(grib_get_double_array(ncepTotalRainfall, "values", ncepTotalRainfallValues, &ncepValuesSize), 0);
 		
 
 		
@@ -189,7 +190,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 		
 	}
 	
-	tiggeSnowfallWaterEquivalentValues = calloc(65160, sizeof(double));
+	tiggeSnowfallWaterEquivalentValues = calloc(ncepValuesSize, sizeof(double));
 	if(tiggeSnowfallWaterEquivalentValues == NULL){
 		fprintf(stderr, "Error (tiggeSnowfallWaterEquivalentValues) There was a problem Allocating the memory for storing the data. Exiting generateSnowFallWaterEquivalent()\n");
 		exit(1);
@@ -197,7 +198,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	
 	
 	// for each point in the grid.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		if(fff == 0){
 			tiggeSnowfallWaterEquivalentValues[i] = 0.0;
 		}
@@ -218,7 +219,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 
 
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSnowfallWaterEquivalentValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSnowfallWaterEquivalentValues, ncepValuesSize),  0);
 	
 	
 	if(writeGribToFile(gh, fileName) != 0){

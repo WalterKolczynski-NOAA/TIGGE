@@ -13,11 +13,13 @@ void generateTimeIntegratedSurfaceNetSolarRadiation(int yyyy, int mm, int dd, in
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
-	runningSum = calloc(65160, sizeof(double));
+	runningSum = calloc(ncepValuesSize, sizeof(double));
 	
 	double* tiggeTimeIntegratedSurfaceNetSolarRadiationValues = NULL;
 	
@@ -62,18 +64,18 @@ void generateTimeIntegratedSurfaceNetSolarRadiation(int yyyy, int mm, int dd, in
 
 			//printf("%s\n", fileName);
 			// reset the current fff's values.
-		tiggeTimeIntegratedSurfaceNetSolarRadiationValues = calloc(65160, sizeof(double));		
+		tiggeTimeIntegratedSurfaceNetSolarRadiationValues = calloc(ncepValuesSize, sizeof(double));		
 
 		if(fff == 0){
 			//printf("fff == 0\n");
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				//runningSum[i] = ncepValues[i];
 				runningSum[i] = 0.0;
 				tiggeTimeIntegratedSurfaceNetSolarRadiationValues[i] = 0.0;
 			}
 		}else
 			{
-			for(i=0; i<65160; i++)
+			for(i=0; i<ncepValuesSize; i++)
 				{
 				runningSum[i] += ncepValues[i];
 			//tiggeTimeIntegratedSurfaceNetSolarRadiationValues[i] = (runningSum[i] * (fff*3600.0));
@@ -130,7 +132,7 @@ Dick
 		
 		
 		// now create a new grib_handle to store the data.
-		gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+		gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 		
 		GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 		
@@ -166,7 +168,7 @@ Dick
 		GRIB_CHECK(grib_set_long(gh, "endStep", (long)fff ), 0);
 	
 		// store the data into the grib file
-		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceNetSolarRadiationValues, 65160),  0);
+		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceNetSolarRadiationValues, ncepValuesSize),  0);
 		writeGribToFile(gh, fileName);
 
 
@@ -197,7 +199,7 @@ Dick
 **  void**     The array of pointers where the data was stored.
 **
 */
-void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
+void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers, int n_lat, int n_lon){
 
 	// h1 and h2 will be added to each other.
 	grib_handle* h1 = NULL;
@@ -206,6 +208,7 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 	void** retBuffer = NULL;
 	const void* buffer = NULL;
 	size_t size = 0;
+	size_t ncepValuesSize = n_lat * n_lon;
 	long sizeLong = 0;
 	long ncepDiscipline, ncepCategory, ncepVariable, ncepLevel;
 	int i;
@@ -214,8 +217,8 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 	double* newValues = NULL;
 	double* oldValues1 = NULL;
 	double* oldValues2 = NULL;
-	size_t oldValues1Size = 65160;
-	size_t oldValues2Size = 65160;
+	size_t oldValues1Size = ncepValuesSize;
+	size_t oldValues2Size = ncepValuesSize;
 
 	// test if this is the first one.
 	if(!numberOfSavedRecords[TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION]){
@@ -243,7 +246,7 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
                         if (h1 == NULL)
                                 { h1 = grib_handle_new_from_file( 0, bFile, &err ); }
                         if( h1 == NULL && ignoreMissingInput != 0 )	// fill-in or croak?
-                                { h1 = newBlankGribRecord( 0, 4, 192, 1 ); }
+                                { h1 = newBlankGribRecord( 0, 4, 192, 1, n_lat, n_lon ); }
                         if (h1 == NULL && ignoreMissingInput == 0 )
                                 {
                                 printf("Error (TI net solar flux I) unable to create handle from file. error code: %d \n", err);
@@ -273,7 +276,7 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 			if (h2 == NULL)
 				{ h2 = grib_handle_new_from_file( 0, bFile, &err ); }
 			if( h2 == NULL && ignoreMissingInput != 0 )
-				{ h2 = newBlankGribRecord( 0, 4, 193, 1 ); }
+				{ h2 = newBlankGribRecord( 0, 4, 193, 1, n_lat, n_lon ); }
 			if (h2 == NULL && ignoreMissingInput == 0 )
 				{
 				printf("Error (TI net solar flux II) unable to create handle from file. error code: %d \n", err);
@@ -299,9 +302,9 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 	
 
 	// array for the new values to be stored.
-	newValues = calloc(65160, sizeof(double));
-	oldValues1 = calloc(65160, sizeof(double));
-	oldValues2 = calloc(65160, sizeof(double));
+	newValues = calloc(ncepValuesSize, sizeof(double));
+	oldValues1 = calloc(ncepValuesSize, sizeof(double));
+	oldValues2 = calloc(ncepValuesSize, sizeof(double));
 
 		// This operation must always be done in the order:   Net = [Down - Up]
 		// Given the order may be arbituary, make sure its always var# (192 - 193)
@@ -320,7 +323,7 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 //	GRIB_CHECK(grib_get_double_array(h1, "values", oldValues1, &oldValues1Size), 0);
 //	GRIB_CHECK(grib_get_double_array(h2, "values", oldValues2, &oldValues2Size), 0);
 
-	for(i = 0; i < 65160; i++)
+	for(i = 0; i < ncepValuesSize; i++)
 		{
 		newValues[i] = oldValues1[i] - oldValues2[i];
 
@@ -344,11 +347,11 @@ void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void** gribBuffers){
 		// make an empty temporary grib handle to store calculations
 		// necessary b/c the binary and decimal scale factors will be new and clean
 	grib_handle* ghTemp;
-	ghTemp = newGribRecord(1000, 1, 1, 0, 0, 0);
+	ghTemp = newGribRecord(1000, 1, 1, 0, 0, 0, n_lat, n_lon);
 
 	//printf("\n");
 	// write the values back into the grib handle.
-	GRIB_CHECK( grib_set_double_array(ghTemp, "values", newValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(ghTemp, "values", newValues, ncepValuesSize),  0);
 
 
 	//printf("%ld, %ld, %ld, %ld\n", ncepDiscipline, ncepCategory, ncepVariable, ncepLevel);

@@ -14,11 +14,12 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
         rewind(bFile);
 
 	grib_handle* ncepUpperSoilTemperature = NULL;
-	size_t ncepUpperSoilTemperatureSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	double* ncepUpperSoilTemperatureValues = NULL;
 	
 	grib_handle* ncepLowerSoilTemperature = NULL;
-	size_t ncepLowerSoilTemperatureSize = 65160;
 	double* ncepLowerSoilTemperatureValues = NULL;	
 	
 	double* tiggeSoilTemperatureValues = NULL;	
@@ -48,7 +49,7 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(SOIL_TEMPERATURE, yyyy, mm, dd, hh, fff, em, fileName);
@@ -176,14 +177,14 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 		}
 	}
 	
-	ncepUpperSoilTemperatureValues = calloc(65160, sizeof(double));
-	ncepLowerSoilTemperatureValues = calloc(65160, sizeof(double));
-	GRIB_CHECK(grib_get_double_array(ncepUpperSoilTemperature, "values", ncepUpperSoilTemperatureValues, &ncepUpperSoilTemperatureSize), 0);
-	GRIB_CHECK(grib_get_double_array(ncepLowerSoilTemperature, "values", ncepLowerSoilTemperatureValues, &ncepLowerSoilTemperatureSize), 0);
+	ncepUpperSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
+	ncepLowerSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
+	GRIB_CHECK(grib_get_double_array(ncepUpperSoilTemperature, "values", ncepUpperSoilTemperatureValues, &ncepValuesSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepLowerSoilTemperature, "values", ncepLowerSoilTemperatureValues, &ncepValuesSize), 0);
 
 
 	// both are now stored off.
-	tiggeSoilTemperatureValues = calloc(65160, sizeof(double));
+	tiggeSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
 
 
 	if(tiggeSoilTemperatureValues == NULL){
@@ -194,12 +195,12 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	GRIB_CHECK( grib_set_long(gh, "bitMapIndicator", 0), 0);
 
 	// for each point in the grid.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		tiggeSoilTemperatureValues[i] = (ncepUpperSoilTemperatureValues[i] + ncepLowerSoilTemperatureValues[i]) / 2.0;
 	}
 
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilTemperatureValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilTemperatureValues, ncepValuesSize),  0);
 	
 
 	if(writeGribToFile(gh, fileName) != 0){

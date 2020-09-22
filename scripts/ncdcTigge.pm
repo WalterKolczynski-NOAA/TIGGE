@@ -9,12 +9,12 @@ use File::Path;
 
 require Exporter;
 
-our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])f(\d{2,3})$);
+our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])(\.0p50\.)?f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => 	[
-   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN $gefs_filepattern &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle ) 
+   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN $gefs_filepattern &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle &FCT_HOURS &FCT_INC) 
 								] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -31,6 +31,24 @@ if(  ( !(-d ${ncdcTigge::GRIB_API_BIN}) || !(-r ${ncdcTigge::GRIB_API_BIN}) || !
 print STDOUT "    GRIB_API_BIN is [$ncdcTigge::GRIB_API_BIN]\n";
 
 
+sub get_n_members($) {
+    my ($cycle) = @_;
+    if ($cycle >= 2020092312) {
+        return 31;
+    } else {
+        return 21;
+    }
+}
+
+sub getQcNumPoints($) {
+    my ($cycle) = @_;
+    if ($cycle >= 2020092312) {
+        return 259920;   # Number of datapoints contained in 0.5-deg Grid
+    } else {
+        return 65160;    # Number of datapoints contained in GENS-3 Grid
+    }
+}
+
 
 sub BEGIN 
 {
@@ -41,7 +59,7 @@ $ncdcTigge::startTime = time;
 # our $GRIB_API_BIN = "$ENV{TIGGE_TOOLS}/grib-api/bin";
 
 	# PACKAGE LEVEL "Public" (our scope) VARIABLES / CONSTANTS
-our $ENS_MEMBERS    = 20;		# Maximum number of members
+# our $ENS_MEMBERS    = 20;		# Maximum number of members
 our $FCT_HOURS      = 384;		# Maximum forecast hours
 our $FCT_INC        = 6;		# Default forecast hour increment
 
@@ -92,8 +110,7 @@ our $ftpRetryDelay	= 20;		# Seconds to wait between retry
 our $qcCenterCode 	= "kwbc";	# Accepted originating center code (NWS/NCEP)
 our $qcRecByteMin	= 128;		# Minimum byte size for ANY grib2 record
 our $qcGensProcessIdNum = 4;	# GRIB2 Generating process ID for GENS model
-our $qcNumPoints	= 65160;	# Number of datapoints contained in GENS-3 Grid
-								# GRIB2 Record count, inside GENS files
+
 our $qcGensAnlARecCount	= 45;
 our $qcGensFctARecCount	= 51;
 our $qcGensAnlBRecCount	= 283;
@@ -278,7 +295,7 @@ return("$headline Returned OK\n\n");
 #					qcGensFile
 #=========================================================================
 
-sub qcGensFile($)
+sub qcGensFile($;$)
 {
 undef my @messages;               # information to return
 undef my %RecsPerFctHr;
@@ -290,7 +307,7 @@ undef my %RecsPerFctHr;
 my $CENTER 			= $ncdcTigge::qcCenterCode;
 my $REC_BYTE_MIN	= $ncdcTigge::qcRecByteMin;
 my $GEN_PROCESS_NUM	= $ncdcTigge::qcGensProcessIdNum;
-my $NUM_POINTS 		= $ncdcTigge::qcNumPoints;
+# my $NUM_POINTS 		= $ncdcTigge::qcNumPoints;
 my $MAX_FCT 		= $ncdcTigge::FCT_HOURS;
 my $GRIB_LS = "${ncdcTigge::GRIB_API_BIN}/grib_ls";
 
@@ -300,7 +317,7 @@ my $BrecCountAnl = $ncdcTigge::qcGensAnlBRecCount;
 my $BrecCountFct = $ncdcTigge::qcGensFctBRecCount;
 
 # start
-my $inFile = shift(@_);
+my ($inFile, $cycle) = @_;
 $inFile =~ s/\/*\//\//g;
 my $inFileName = $inFile;
 $inFileName =~ s/^.*\///g;
@@ -315,7 +332,7 @@ if( !(-x $GRIB_LS) )
 
 # my ($inFileParseName,$inFileParseGrid,$inFileParseDTG,$inFileParseCycle,$inFileParseFct,$inFileParseMem) =
 #   $inFileName =~ m/^(gens-.)_(\d)_(\d{8})_(\d{4})_(\d{3})_(\d{2})\.(grb2)$/i;
-my ( $inFileParseMem, $inFileParseCycle, $gensFileType, $inFileParseFct ) =
+my ( $inFileParseMem, $inFileParseCycle, $gensFileType, $inFileParseRes, $inFileParseFct ) =
   $inFileName =~ m/$gefs_filepattern/i;
 
 my $gribLsKeysString = join(',',@gribLsKeys);
@@ -442,7 +459,7 @@ foreach my $line ( @rtn )
         "\n\tQC Warning:$numLine  Gen.Process ID $lineData[4] is not $GEN_PROCESS_NUM");
         }
     if( (($lineDataCount == $gribLsKeyCount) &&
-            ($lineData[5] < 0 || $lineData[5] > 20) ) )
+            ($lineData[5] < 0 || $lineData[5] >= get_n_members($cycle) ) ) )
         {
         push(@messages,
         "\n\tQC Warning:$numLine  Invalid mem. number ($lineData[5])");
@@ -454,7 +471,7 @@ foreach my $line ( @rtn )
         "\n\tQC Warning:$numLine  Invalid forecast hour ($lineData[6])");
         }
     if( ($lineDataCount == $gribLsKeyCount) &&
-            ($lineData[7] != $NUM_POINTS) )
+            ($lineData[7] != getQcNumPoints($cycle)) )
         {
         push(@messages,
         "\n\tQC Warning:$numLine  Wrong #data-points ($lineData[7])");
@@ -530,7 +547,7 @@ return(0,"OK",@messages);
 #					qcGensCycle
 #=========================================================================
 
-sub qcGensCycle($;$)
+sub qcGensCycle($;$;$)
 {
 my $headline = "$0:ncdcTigge::qcGensCycle : ";
 my $MEM_FILES = 65;
@@ -538,6 +555,7 @@ if( $ncdcTigge::FCT_INC != 0 )
 	{ $MEM_FILES = int($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC) +1; }
 
 my $inDir = shift(@_);
+my $cycle = shift(@_);
 my $quietOpt = 0;
 if( scalar grep(/(1|-q|-quiet)/,@_) ) 
 	{ $quietOpt = 1; }
@@ -623,7 +641,7 @@ foreach my $thisFile ( @dirGrb ) {
     $fileFound{$hourCode} = 1;
 }
 
-for( my $m = 0; $m <= 20; $m++ ) {
+for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
     my $aKey = sprintf("%02d-%1s",$m,"a");
     my $bKey = sprintf("%02d-%1s",$m,"b");
 	if( !defined($filesPerMember{$aKey}) ) 
@@ -670,7 +688,7 @@ foreach my $thisFile ( sort @dirGrb )
 		next;
 		}
 
-    my @rtn = qcGensFile($thisPath);
+    my @rtn = qcGensFile($thisPath,$cycle);
     my $rtnCode = shift(@rtn);
     my $rtnDesc = shift(@rtn);
 
@@ -742,7 +760,7 @@ if( !(-r $ENV{'TIGGE_OUTPUT'}) )
 
 
 my $numVars = $#ncdcTigge::tiggeVarCodes + 1;
-my $expectedVarCount = ($ncdcTigge::ENS_MEMBERS+1) * ($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC +1);
+my $expectedVarCount = get_n_members($cycle) * ($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC +1);
 my $expectedCycleCount = $expectedVarCount * $numVars;
 
 print STDOUT " * Scanning dir; [$ENV{'TIGGE_OUTPUT'}] \n";
@@ -886,7 +904,7 @@ sub runCycle($;$) {
         # The QC is a long process and may be turned off with -noQC
     if( $QC eq "yes" )
     {
-        my @QCresults = ncdcTigge::qcGensCycle($latestRunPath);
+        my @QCresults = ncdcTigge::qcGensCycle($latestRunPath,$latestRun);
         if( $QCresults[0] !~ m/\*\-\*\-PASSED\-\*\-\*/ )
             {
             print STDOUT "$headline : Cycle $latestRun : Input QC did not pass!\n";
@@ -1225,7 +1243,7 @@ if( $#cycleFiles == -1 )
 my $yyyymmdd = substr($cycle,0,8);
 my $hh00 = substr($cycle,8,2)."00";
 
-for( my $m = 0; $m <= $ncdcTigge::ENS_MEMBERS; $m++ )
+for( my $m = 0; $m < get_n_members($cycle); $m++ )
 	{
 	my $memberFileName = sprintf("gens-ncdc_3_%08d_%04d_%02d.grb2",$yyyymmdd,$hh00,$m);
 	my $memberFilePath = "${archiveTargetDir}/${memberFileName}";
@@ -1478,7 +1496,7 @@ sub mergeRecords($$$)
 #print STDOUT "||DEBUG|||  $dir $#allFiles (@allFiles)\n\n";
 	if( $#allFiles <= -1 )   { return(-16); } 
 
-	for( my $mb = 0; $mb <= $ENS_MEMBERS; $mb++ )
+	for( my $mb = 0; $mb < get_n_members($cyc); $mb++ )
 		{
 		foreach my $lv ( @lvs ) 
 			{

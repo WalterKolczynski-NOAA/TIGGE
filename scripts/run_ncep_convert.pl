@@ -8,20 +8,52 @@ sub cleanDevShm();
 
 my $ymdh = shift(@ARGV);
 our $CYCLE_YMDH = $ymdh;
-if( $ymdh !~ m/\d{4}[0-1]\d[0-3]\d[0-2]\d/ )
-        { exit 0; }
+if( $ymdh !~ m/\d{4}[0-1]\d[0-3]\d[0-2]\d/ ) { exit 0; }
 our $inputDir     = "$ENV{TIGGE_INPUT}/$ymdh";
 our $outputStash  = "$ENV{TIGGE_OUTPUT}/$ymdh";
 our $outputArchive  = "$ENV{TIGGE_OUTPUT}/archive/$ymdh";
 our $QCREPORT = "tigge-output-qc-report-for-${ymdh}.txt";
 our $QCREPORTpath = "$outputStash/$QCREPORT";
 
+our $FCT_HOURS = ${ncdcTigge::FCT_HOURS};
+our $FCT_INC = ${ncdcTigge::FCT_INC};
+
+our %qcList = (
+	'pl' => {
+		'gh'     => { 'levels' => [50,200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'q'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		't'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'u'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'v'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+	} ,
+	'pt' => {
+		'pv'     => { 'levels' => [320], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+	} ,
+	'pv' => {
+		'u'      => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } , 
+		'v'      => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+	} ,
+	'sl' => {
+		'10u'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'10v'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'2d'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'2t'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'cape'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'cin'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'lsm'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'msl'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'orog'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. 0] } ,
+		'skt'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'sp'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'mn2t6'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($FCT_HOURS/$FCT_INC)] } ,
+		'mx2t6'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($FCT_HOURS/$FCT_INC)] } ,
+	}
+);
 
 print STDOUT "$0 @ARGV Run at ".scalar localtime(time)."\n\n";
 
 my $headline = "$0 (@ARGV) : ";
 our $base = "$ENV{TIGGE_TOOLS}/scripts";
-our $checkList = "${base}/output-verify.list";
 	# A list of patterns to ensure all needed fields were converted.
 	# previously this was .txt file, which left it vulnerable to deletion.
 our $progressCounter = 0;
@@ -29,7 +61,7 @@ print STDOUT "\n$headline Started \@ ".localtime(time)."\n\n";
 
 
 if( ${ncdcTigge::GRIB_API_BIN} eq "" )
-        { die(" Var ncdcTigge::GRIB_API_BIN is unset!\n"); }
+	{ die(" Var ncdcTigge::GRIB_API_BIN is unset!\n"); }
 if( ! -d ${ncdcTigge::GRIB_API_BIN} )
 	{ die(" Var ncdcTigge::GRIB_API_BIN is set incorrectly or target is not a directory.\n"); }
 if( ! -r ${ncdcTigge::GRIB_API_BIN} )
@@ -54,30 +86,24 @@ if( ! -x $TOOL_GRIB_CONVERT )
 	}
 
 if( ! -e $TOOLS_TIGGE_CHECK )
-        {
-        print STDERR "Path to GRIB_API tigge_check ($TOOLS_TIGGE_CHECK) is not found.  Edit path to GRIB_API_BIN in ncdcTigge.pm and try again. ";
-        exit 0;
-        }
+	{
+	print STDERR "Path to GRIB_API tigge_check ($TOOLS_TIGGE_CHECK) is not found.  Edit path to GRIB_API_BIN in ncdcTigge.pm and try again. ";
+	exit 0;
+	}
 if( ! -x $TOOLS_TIGGE_CHECK )
-        {
-        print STDERR "Path to GRIB_API tigge_check found <$TOOLS_TIGGE_CHECK> but it cannot be executed by effective user.  Investigate the binary permissions.. ";
-        exit 0;
-        }
+	{
+	print STDERR "Path to GRIB_API tigge_check found <$TOOLS_TIGGE_CHECK> but it cannot be executed by effective user.  Investigate the binary permissions.. ";
+	exit 0;
+	}
 
 if( ! -e $TOOLS_TIGGE_SPLIT )
-        {
-        print STDERR "Path to GRIB_API tigge_split ($TOOLS_TIGGE_SPLIT) is not found.  Edit path to GRIB_API_BIN in ncdcTigge.pm and try again. ";
-        exit 0;
-        }
-if( ! -x $TOOLS_TIGGE_SPLIT )
-        {
-        print STDERR "Path to GRIB_API tigge_split found <$TOOLS_TIGGE_SPLIT> but it cannot be executed by effective user.  Investigate the binary permissions.. \n\n\n";
-        exit 0;
-        }
-
-if( ! (-e $checkList) || ! (-r $checkList) ) 
 	{
-	print STDERR "### Required verif. list not present or unreadable: $checkList \n\n";
+	print STDERR "Path to GRIB_API tigge_split ($TOOLS_TIGGE_SPLIT) is not found.  Edit path to GRIB_API_BIN in ncdcTigge.pm and try again. ";
+	exit 0;
+	}
+if( ! -x $TOOLS_TIGGE_SPLIT )
+	{
+	print STDERR "Path to GRIB_API tigge_split found <$TOOLS_TIGGE_SPLIT> but it cannot be executed by effective user.  Investigate the binary permissions.. \n\n\n";
 	exit 0;
 	}
 
@@ -96,11 +122,10 @@ ENV: TIGGE_TOOLS  = $ENV{TIGGE_TOOLS}
 TOOLS_TIGGE_CHECK = $TOOLS_TIGGE_CHECK
 TOOLS_TIGGE_SPLIT = $TOOLS_TIGGE_SPLIT
 TOOL_GRIB_CONVERT = $TOOL_GRIB_CONVERT
-        rules file: ${base}/grib_filter_rules
+	rules file: ${base}/grib_filter_rules
 
 CYCLE_YMDH        = $CYCLE_YMDH
 base              = $base
-checkList         = $checkList
 inputDir          = $inputDir
 outputStash       = $outputStash
 QCREPORTpath      = $QCREPORTpath
@@ -206,7 +231,7 @@ exit(0);
 sub convertFile($)
 	{
 	my $headline = "$0:convertFile() : ";
-	my $filePath = shift(@_);
+	my $filePath = shift(@_);	
 	my $rulesFile = "${base}/grib_filter_rules";
 
 #print STDOUT "DEBUG $headline $filePath w/ $rulesFile\n";
@@ -277,16 +302,10 @@ my $archiveStash = "$ENV{TIGGE_OUTPUT}/archive";
 
 if( !(-d $outputStash) ) 
 	{ mkdir($outputStash) || return("\n### $outputStash no such output directory.\n\n"); }
-if( !(-f $checkList) )
-        { return("\n### $checkList no such verification list file.\n\n"); }
 
 my $subStartTime = time;
 undef my @tarList;
 undef my @errorList;
-
-open(LIST,"<",$checkList);
-my @checkListPatterns = readline(LIST);
-close(LIST);
 
 opendir(STASH,$outputStash);
 my @theOutput = grep(/\.grib$/,readdir(STASH));
@@ -294,27 +313,34 @@ closedir(STASH);
 
 open(REP,">",$QCREPORTpath);
 
-foreach my $pattern ( @checkListPatterns )
-	{
-	chomp($pattern);
-	my @articles = split(/,/,$pattern);
-	my $matcher = qq(z_tigge_c_kwbc_.............._...._${articles[6]}_${articles[0]}_${articles[1]}_${articles[2]}_${articles[3]}_${articles[4]}_${articles[5]}.grib);
+for( my $member = 0; $member < ncdcTigge::get_n_members($ymdh); $member++ ) {
+	print STDOUT "Starting QC for member $member\n";
+	my $pert_type = $member == 0 ? 'cf' : 'pf';
+	foreach my $lev_type (keys %qcList) {
+		print STDOUT "    Level type: $lev_type  Variable:";
+		foreach my $variable (keys %{$qcList{$lev_type}}) {
+			print STDOUT " $variable";
+			my @levels = @{$qcList{$lev_type}{$variable}{'levels'}};
+			my @hours = @{$qcList{$lev_type}{$variable}{'hours'}};
+			foreach my $level (@levels) {
+				foreach my $hour (@hours) {
+					my $matcher = sprintf("z_tigge_c_kwbc_.............._...._prod_%s_%s_%04d_%03d_%04d_%s.grib", $pert_type, $lev_type, $hour, $member, $level, $variable);
+					my @scan = grep( /$matcher/i, @theOutput );
 
-	my @scan = grep( /$matcher/i, @theOutput );
+					if( $#scan == 0 ) 
+						{ push(@tarList,$scan[0]); }
+					else 
+						{ push(@errorList,"file [$matcher] expected but not found"); }
 
-# print STDOUT " VERIF $matcher = $#scan \n";
-
-	if( $#scan == 0 ) 
-		{ push(@tarList,$scan[0]); }
-	else 
-		{ push(@errorList,"file [$matcher] expected but not found"); }
-
-	print REP " :: $pattern :: [ $#scan ] \n";
+					print REP " :: $matcher :: [ $#scan ] \n";
+				}
+			}
+		}
+		print STDOUT "\n";
 	}
+}
 
 close(REP);
-
-
 
 # Eventually we will check & stop here if there were QC errors.
 #   but this is preliminary.
@@ -323,8 +349,8 @@ if( 1 == 1 )
 	{
 	my $tarListFile = "$outputStash/tarListFile$$";
 	my $tarArchiveUnit = "$archiveStash/tigge-kwbc-${ymdh}.tar";
-        if( !(-d "$archiveStash") )
-                { mkdir($archiveStash) || return(-2); }
+	if( !(-d "$archiveStash") )
+		{ mkdir($archiveStash) || return(-2); }
 
 	open(TARLIST,">",$tarListFile);
 	foreach my $unit ( @tarList )
@@ -340,7 +366,7 @@ if( 1 == 1 )
 			{ print STDOUT "WARNING problem $catRtn concatenating output files!\n\n"; }
 
 		if( !(-d $outputArchive) )    { mkdir($outputArchive); }
-        if( !(-d $outputArchive) )
+		if( !(-d $outputArchive) )
 			{
 			chdir( $outputStash) || return( "chdir failed","chdir failed" );
 			print STDOUT " tarring $tarArchiveUnit \@ ".scalar(localtime(time))."\n";
@@ -368,20 +394,20 @@ return("OK","Counts [$#tarList / $#errorList] in $subTime sec.",join("\n",@error
 
 
 sub cleanDevShm()
-        {
-        opendir(DSM,"/dev/shm") || return;
-        my @rd = grep(/\.gri?b2?/i ,readdir(DSM));
+	{
+	opendir(DSM,"/dev/shm") || return;
+	my @rd = grep(/\.gri?b2?/i ,readdir(DSM));
 	@rd = grep(/$CYCLE_YMDH/, grep(/\.gri?b2?/i ,readdir(DSM)) );
 
-        closedir(DSM);
-        foreach my $f ( sort @rd )
-                {
-                my $fn = "/dev/shm/$f";
-                my $age = (-M $fn);
-                if( $age > 0.1 )        # roughly 2.4 hrs
-                        { unlink("/dev/shm/$f"); }
-                }
-        }
+	closedir(DSM);
+	foreach my $f ( sort @rd )
+			{
+			my $fn = "/dev/shm/$f";
+			my $age = (-M $fn);
+			if( $age > 0.1 )        # roughly 2.4 hrs
+					{ unlink("/dev/shm/$f"); }
+			}
+	}
 
 
 sub END

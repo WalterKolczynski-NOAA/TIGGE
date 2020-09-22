@@ -18,21 +18,21 @@ forecast_hours = range(0, 385, 6)
 
 
 def get_source_path(source_dir: str, time: datetime.datetime, grib_type: str) -> str:
-	if time < datetime.datetime(2020, 9, 13, 12):
+	if time < datetime.datetime(2020, 9, 23, 12):
 		return time.strftime(f'{source_dir}/gefs.%Y%m%d/%H/pgrb2{grib_type}')
 	else:
 		return time.strftime(f'{source_dir}/gefs.%Y%m%d/%H/atmos/pgrb2{grib_type}p5')
 
 
 def get_filename(directory: str, time: datetime.datetime, member: int, forecast_hour: int, grib_type: str) -> str:
-	if time < datetime.datetime(2020, 9, 13, 12):
+	if time < datetime.datetime(2020, 9, 23, 12):
 		return time.strftime(f'{directory}/ge{member}.t%Hz.pgrb2{grib_type}f{forecast_hour:02d}')
 	else:
 		return time.strftime(f'{directory}/ge{member}.t%Hz.pgrb2{grib_type}.0p50.f{forecast_hour:03d}')
 
 
 def get_members(time: datetime.datetime) -> typing.List[str]:
-	if time < datetime.datetime(2020, 9, 13, 12):
+	if time < datetime.datetime(2020, 9, 23, 12):
 		n_members = 21
 	else:
 		n_members = 31

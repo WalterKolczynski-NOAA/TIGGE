@@ -13,11 +13,13 @@ void generateTimeIntegratedSurfaceNetThermalRadiation(int yyyy, int mm, int dd, 
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
-	runningSum = calloc(65160, sizeof(double));
+	runningSum = calloc(ncepValuesSize, sizeof(double));
 	
 	double* tiggeTimeIntegratedSurfaceNetThermalRadiationValues = NULL;
 	
@@ -62,18 +64,18 @@ void generateTimeIntegratedSurfaceNetThermalRadiation(int yyyy, int mm, int dd, 
 
 		//printf("%s\n", fileName);
 		// reset the current fff's values.
-		tiggeTimeIntegratedSurfaceNetThermalRadiationValues = calloc(65160, sizeof(double));		
+		tiggeTimeIntegratedSurfaceNetThermalRadiationValues = calloc(ncepValuesSize, sizeof(double));		
 
 		if(fff == 0){
 			//printf("fff == 0\n");
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				runningSum[i] = ncepValues[i];
 				// Mar.2014 flux fix-- do not count initial time step for flux
 				runningSum[i] = 0.0;
 				tiggeTimeIntegratedSurfaceNetThermalRadiationValues[i] = 0.0;
 			}
 		}else{
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				runningSum[i] += ncepValues[i];
 				//tiggeTimeIntegratedSurfaceNetThermalRadiationValues[i] = (runningSum[i] / (fff*3600.0));
 				// Mar.2014 flux fix -- see ssr code segment for reasoning.
@@ -83,7 +85,7 @@ void generateTimeIntegratedSurfaceNetThermalRadiation(int yyyy, int mm, int dd, 
 		
 		
 		// now create a new grib_handle to store the data.
-		gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+		gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 		
 		GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 		
@@ -118,7 +120,7 @@ void generateTimeIntegratedSurfaceNetThermalRadiation(int yyyy, int mm, int dd, 
 		GRIB_CHECK(grib_set_long(gh, "endStep", (long)fff ), 0);
 	
 		// store the data into the grib file
-		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceNetThermalRadiationValues, 65160),  0);
+		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceNetThermalRadiationValues, ncepValuesSize),  0);
 		writeGribToFile(gh, fileName);
 
 
@@ -149,7 +151,7 @@ void generateTimeIntegratedSurfaceNetThermalRadiation(int yyyy, int mm, int dd, 
 **  void**     The array of pointers where the data was stored.
 **
 */
-void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
+void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers, int n_lat, int n_lon){
 
 	// h1 and h2 will be added to each other.
 	grib_handle* h1 = NULL;
@@ -158,6 +160,7 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 	void** retBuffer = NULL;
 	const void* buffer = NULL;
 	size_t size = 0;
+	size_t ncepValuesSize = n_lat * n_lon;
 	long sizeLong = 0;
 	long ncepDiscipline, ncepCategory, ncepVariable, ncepLevel;
 	int i;
@@ -166,8 +169,8 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 	double* newValues = NULL;
 	double* oldValues1 = NULL;
 	double* oldValues2 = NULL;
-	size_t oldValues1Size = 65160;
-	size_t oldValues2Size = 65160;
+	size_t oldValues1Size = ncepValuesSize;
+	size_t oldValues2Size = ncepValuesSize;
 
 	// test if this is the first one.
 	if(!numberOfSavedRecords[TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION]){
@@ -198,7 +201,7 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 			if (h1 == NULL)
 			{ h1 = grib_handle_new_from_file( 0, bFile, &err ); }
 			if( h1 == NULL && ignoreMissingInput != 0 )     // fill-in or croak?
-				{ h1 = newBlankGribRecord( 0, 5, 192, 1 ); }
+				{ h1 = newBlankGribRecord( 0, 5, 192, 1, n_lat, n_lon ); }
 			if (h1 == NULL && ignoreMissingInput == 0 )
 				{
 				printf("Error (TI net therm flux I) unable to create handle from file. error code: %d \n", err);
@@ -231,7 +234,7 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 			if (h2 == NULL)
 				{ h2 = grib_handle_new_from_file( 0, bFile, &err ); }
 			if( h2 == NULL && ignoreMissingInput != 0 )     // fill-in or croak?
-				{ h2 = newBlankGribRecord( 0, 5, 193, 1 ); }
+				{ h2 = newBlankGribRecord( 0, 5, 193, 1, n_lat, n_lon ); }
 			if (h2 == NULL && ignoreMissingInput == 0 )
 				{
 				printf("Error (TI net solar flux II) unable to create handle from file. error code: %d \n", err);
@@ -259,9 +262,9 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 	
 
 	// array for the new values to be stored.
-	newValues = calloc(65160, sizeof(double));
-	oldValues1 = calloc(65160, sizeof(double));
-	oldValues2 = calloc(65160, sizeof(double));
+	newValues = calloc(ncepValuesSize, sizeof(double));
+	oldValues1 = calloc(ncepValuesSize, sizeof(double));
+	oldValues2 = calloc(ncepValuesSize, sizeof(double));
 
 
 
@@ -286,7 +289,7 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 //	GRIB_CHECK(grib_get_double_array(h1, "values", oldValues1, &oldValues1Size), 0);
 //	GRIB_CHECK(grib_get_double_array(h2, "values", oldValues2, &oldValues2Size), 0);
 
-	for(i = 0; i < 65160; i++)
+	for(i = 0; i < ncepValuesSize; i++)
 		{ 
 		// if( i == 30000 ) { printf("DEBUG [%d] : %f - %f\n",i, oldValues2[i], oldValues1[i] ); }
 		newValues[i] = oldValues1[i] - oldValues2[i]; 
@@ -295,10 +298,10 @@ void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void** gribBuffers){
 		// make an empty temporary grib handle to store calculations
 		// necessary b/c the binary and decimal scale factors will be new and clean
 	grib_handle* ghTemp;
-	ghTemp = newGribRecord(1000, 1, 1, 0, 0, 0);        //printf("\n");
+	ghTemp = newGribRecord(1000, 1, 1, 0, 0, 0, n_lat, n_lon);        //printf("\n");
 
         	// write the values back into a blank grib handle for storage only
-        GRIB_CHECK( grib_set_double_array(ghTemp, "values", newValues, 65160),  0);
+    GRIB_CHECK( grib_set_double_array(ghTemp, "values", newValues, ncepValuesSize),  0);
 	GRIB_CHECK(grib_get_long(ghTemp, "totalLength", &sizeLong), 0);
 	size = (size_t)sizeLong;
 

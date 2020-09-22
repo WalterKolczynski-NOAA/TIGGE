@@ -5,7 +5,7 @@ set productionStatusOfProcessedData = 4;
 set subdivisionsOfBasicAngle = missing();
 set localTablesVersion = 0;
 set tablesVersion = 5;
-set numberOfForecastsInEnsemble = 21;
+set numberOfForecastsInEnsemble = numberOfForecastsInEnsemble + 1;
 
 if(parameterCategory == 0 && parameterNumber == 5 && typeOfFirstFixedSurface == 103 && discipline == 0)
 	{ set tigge_short_name = 'mn2t6'; }

@@ -16,7 +16,7 @@ DIST_PREFIX = $(HOME)/tigge
 
 # Files Listed Here
 SRC = util.c newGribRecord.c loadDataForVariable.c generateVariable.c \
-	loadDataForTestVariable.c generateTestVariable.c generateTimeIntegratedSnowFallWaterEquivalent.c generateSnowFallWaterEquivalent.c \
+	generateTimeIntegratedSnowFallWaterEquivalent.c generateSnowFallWaterEquivalent.c \
 	generateTimeIntegratedOutgoingLongWaveRadiation2016.c generateTimeIntegratedSurfaceLatentHeatFlux2016.c \
 	generateTimeIntegratedSurfaceSensibleHeatFlux2016.c generateTimeIntegratedSurfaceNetSolarRadiation2016.c \
 	generateTimeIntegratedSurfaceNetThermalRadiation2016.c generateTotalPrecipitation.c generateTotalColumnWater.c \

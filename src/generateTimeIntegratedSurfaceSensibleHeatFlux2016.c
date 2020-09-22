@@ -13,11 +13,13 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
-	runningSum = calloc(65160, sizeof(double));
+	runningSum = calloc(ncepValuesSize, sizeof(double));
 	
 	double* tiggeTimeIntegratedSurfaceSensibleHeatFluxValues = NULL;
 	
@@ -40,8 +42,8 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 	// for each forecast  hour.
 	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
 		
-	        // populate tmEnd with forecast time offset, add to initial time 
-	        tmEnd.yr = 0;
+	    // populate tmEnd with forecast time offset, add to initial time 
+	    tmEnd.yr = 0;
 		tmEnd.mo = 0; 
 		tmEnd.dy = 0;  
 		tmEnd.hr = fff;  
@@ -62,19 +64,19 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 
 		//printf("%s\n", fileName);
 		// reset the current fff's values.
-		tiggeTimeIntegratedSurfaceSensibleHeatFluxValues = calloc(65160, sizeof(double));		
+		tiggeTimeIntegratedSurfaceSensibleHeatFluxValues = calloc(ncepValuesSize, sizeof(double));		
 
 		if(fff == 0){
 			//printf("fff == 0\n");
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				// runningSum[i] = ncepValues[i];
 				// Mar.2014 flux fix -- Do not time-int initial time step!
 				runningSum[i] = 0.0;
 				tiggeTimeIntegratedSurfaceSensibleHeatFluxValues[i] = 0.0;
 			}
-		}else
+		} else
 			{
-			for(i=0; i<65160; i++)
+			for(i=0; i<ncepValuesSize; i++)
 				{
 				runningSum[i] += ncepValues[i];
 
@@ -89,7 +91,7 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 		
 		
 		// now create a new grib_handle to store the data.
-		gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+		gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 		
 		GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 		
@@ -124,7 +126,7 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 		GRIB_CHECK(grib_set_long(gh, "endStep", (long)fff ), 0);
 	
 		// store the data into the grib file
-		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceSensibleHeatFluxValues, 65160),  0);
+		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedSurfaceSensibleHeatFluxValues, ncepValuesSize),  0);
 		writeGribToFile(gh, fileName);
 
 
@@ -155,7 +157,7 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 **  void**     The array of pointers where the data was stored.
 **
 */
-void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void** gribBuffers){
+void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void** gribBuffers, int n_lat, int  n_lon){
 
 	// seek to a variable.
 	grib_handle* h = NULL;
@@ -165,8 +167,6 @@ void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void** gribBuffers){
 	size_t size = 0;
 	long sizeLong = 0;
 	long ncepDiscipline, ncepCategory, ncepVariable, ncepLevel;
-	
-
 
 
 	// test if this is the first one.
@@ -181,20 +181,16 @@ void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void** gribBuffers){
 			grib_handle_delete(h);
 		}
 
-
-
 		h = grib_handle_new_from_file(0, aFile, &err);
 		if (h == NULL)
 			{ h = grib_handle_new_from_file( 0, bFile, &err ); }
 		if( h == NULL && ignoreMissingInput != 0 )     // fill-in or croak?
-			{ h = newBlankGribRecord( 0, 0, 11, 1 ); }
+			{ h = newBlankGribRecord( 0, 0, 11, 1, n_lat, n_lon ); }
 		if (h == NULL && ignoreMissingInput == 0 )
 			{
 			printf("Error (TI sense heat flux) unable to create handle from file. error code: %d \n", err);
 			return(NULL);
 			}
-
-
 
 		GRIB_CHECK(grib_get_long(h, "discipline", &ncepDiscipline), 0);
 		GRIB_CHECK(grib_get_long(h, "parameterCategory", &ncepCategory), 0);
