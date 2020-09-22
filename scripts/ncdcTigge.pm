@@ -1330,8 +1330,8 @@ if( @tarRtn )
 	return("### $headline  Returned from tar $masterArchive:  @tarRtn\n\n");
 	}
 
-my @rtn = ncdcTigge::mergeCycleMembers($cycle);
-print STDOUT "ncdcTigge::mergeCycleMembers Call returned:\n@rtn\n\n";
+# my @rtn = ncdcTigge::mergeCycleMembers($cycle);
+# print STDOUT "ncdcTigge::mergeCycleMembers Call returned:\n@rtn\n\n";
 
 # Flag the status file as sucesssfully processed
 push(@statusInfo,"\nDATA_PACKAGED_SUCCESSFULLY ".localtime(time)."\n");
