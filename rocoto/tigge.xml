@@ -4,11 +4,11 @@
 	<!ENTITY PSLOT "TIGGE">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY SDATE "2020072906">
-	<!ENTITY EDATE "2020073000">
+	<!ENTITY SDATE "2020092906">
+	<!ENTITY EDATE "2022123118">
 	<!ENTITY INCYC "06">
 	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
-	<!ENTITY GEFS_COM "/gpfs/dell2/nco/ops/com/gens/prod">
+	<!ENTITY GEFS_COM "/gpfs/dell4/nco/ops/com/gefs/prod">
 
 	<!ENTITY ACCOUNT "GEN-T2O">
 	<!ENTITY SCHEDULER "lsf">
