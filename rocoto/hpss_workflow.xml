@@ -13,10 +13,10 @@
 	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
 
 	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
-	<!ENTITY pull_from_hpss SYSTEM "pull_from_hpss.xml">
-	<!ENTITY link_input SYSTEM "link_input.xml">
-	<!ENTITY process_tigge SYSTEM "process_tigge.xml">
-	<!ENTITY transfer_output SYSTEM "transfer_output.xml">
+	<!ENTITY pull_from_hpss SYSTEM "tasks/pull_from_hpss.xml">
+	<!ENTITY link_input SYSTEM "tasks/link_input.xml">
+	<!ENTITY process_tigge SYSTEM "tasks/process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "tasks/transfer_output.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
