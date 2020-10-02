@@ -8,6 +8,6 @@ module load ruby/2.5.1 rocoto/complete            2>/dev/null
 
 cd $(dirname ${BASH_SOURCE[0]})
 
-rocotorun -d tigge_from_hpss.db -w tigge_from_hpss.xml
+rocotorun -d hpss.db -w hpss_workflow.xml
 
 date
