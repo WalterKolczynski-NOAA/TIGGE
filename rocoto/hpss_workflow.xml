@@ -1,14 +1,11 @@
 <?xml version="1.0"?>
 <!DOCTYPE workflow
 [
-	<!ENTITY PSLOT "TIGGE">
+	<!ENTITY PSLOT "TIGGE from HPSS">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY SDATE "2020072000">
-	<!ENTITY EDATE "2020072000">
-	<!ENTITY INCYC "06">
 	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
-	<!ENTITY GEFS_COM "&TIGGE_PTMP;/tape">
+	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
 
 	<!ENTITY ACCOUNT "GEN-T2O">
 	<!ENTITY SCHEDULER "lsf">
@@ -25,8 +22,11 @@
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
 
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
+	
+	<!-- List as many different cycles definitions as needed -->
+	<cycledef group="tigge">201901020600 201901020600 6:00:00</cycledef>
+	<cycledef group="tigge">201901030000 201901030000 6:00:00</cycledef>
 
-	<cycledef group="tigge">&SDATE;00 &EDATE;00 &INCYC;:00:00</cycledef>
 	&pull_from_hpss;
 	&link_input;
 	&process_tigge;

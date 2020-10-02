@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE workflow
 [
-	<!ENTITY PSLOT "TIGGE">
+	<!ENTITY PSLOT "TIGGE from Prod">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
 	<!ENTITY SDATE "2020092906">
