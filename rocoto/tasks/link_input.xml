@@ -1,0 +1,130 @@
+<task name="link_input" cycledefs="tigge" maxtries="1">
+	<jobname><cyclestr>link_tigge_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/link_input.%J</cyclestr></join>
+	<walltime>00:10:00</walltime>
+	<queue>&SHARED_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<native>-R 'rusage[mem=1024]'</native>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/link_input.sh @Y@m@d@H</cyclestr></command>
+	<dependency>
+		<!-- Make sure all final hour files are available and haven't been written in 5 min -->
+		<or>
+			<and>
+				<!-- GEFS v11, 1.0 deg files -->
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gec00.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep01.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep02.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep03.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep04.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep05.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep06.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep07.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep08.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep09.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep10.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep11.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep12.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep13.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep14.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep15.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep16.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep17.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep18.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep19.t@Hz.pgrb2af384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2a/gep20.t@Hz.pgrb2af384</cyclestr></datadep>
+
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gec00.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep01.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep02.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep03.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep04.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep05.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep06.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep07.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep08.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep09.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep10.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep11.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep12.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep13.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep14.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep15.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep16.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep17.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep18.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep19.t@Hz.pgrb2bf384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/pgrb2b/gep20.t@Hz.pgrb2bf384</cyclestr></datadep>
+			</and>
+			<and>
+				<!-- GEFS v12, 0.5 deg files -->
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gec00.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep01.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep02.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep03.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep04.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep05.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep06.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep07.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep08.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep09.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep10.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep11.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep12.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep13.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep14.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep15.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep16.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep17.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep18.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep19.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep20.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep21.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep22.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep23.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep24.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep25.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep26.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep27.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep28.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep29.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2ap5/gep30.t@Hz.pgrb2a.0p50.f384</cyclestr></datadep>
+				
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gec00.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep01.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep02.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep03.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep04.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep05.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep06.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep07.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep08.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep09.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep10.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep11.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep12.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep13.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep14.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep15.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep16.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep17.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep18.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep19.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep20.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep21.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep22.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep23.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep24.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep25.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep26.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep27.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep28.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep29.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+				<datadep age="5:00"><cyclestr>&GEFS_COM;/gefs.@Y@m@d/@H/atmos/pgrb2bp5/gep30.t@Hz.pgrb2b.0p50.f384</cyclestr></datadep>
+			</and>
+		</or>
+	</dependency>
+</task>

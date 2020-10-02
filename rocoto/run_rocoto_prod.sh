@@ -8,6 +8,6 @@ module load ruby/2.5.1 rocoto/complete            2>/dev/null
 
 cd $(dirname ${BASH_SOURCE[0]})
 
-rocotorun -d tigge.db -w tigge.xml
+rocotorun -d prod.db -w prod_workflow.xml
 
 date

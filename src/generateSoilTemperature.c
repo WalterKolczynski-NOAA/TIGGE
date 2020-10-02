@@ -3,17 +3,23 @@
 **  Generates the Soil Temperature variable and writes out the file.
 **
 **  Danny Brinegar & Steven Anthony, 2007
+**  Dan Swank (2016)
 */
 #include "ncdcTigge.h"
 
 void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
+
+        rewind(aFile);
+        rewind(bFile);
+
 	grib_handle* ncepUpperSoilTemperature = NULL;
-	size_t ncepUpperSoilTemperatureSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	double* ncepUpperSoilTemperatureValues = NULL;
 	
 	grib_handle* ncepLowerSoilTemperature = NULL;
-	size_t ncepLowerSoilTemperatureSize = 65160;
 	double* ncepLowerSoilTemperatureValues = NULL;	
 	
 	double* tiggeSoilTemperatureValues = NULL;	
@@ -29,13 +35,21 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	*/
 	
 	// first, is the file here?
-	if(aFile == NULL){
-		fprintf(stderr, "Error, could not read the required file.  Exiting generateSoilTemperature()\n");
+	if(aFile == NULL)
+		{
+		fprintf(stderr, "Error, could not read the a-type file.  Exiting generateSoilTemperature() \n");
 		return;
-	}
+		}
+        if( bFile == NULL )
+                {
+                fprintf( stderr, "Error, could not read the b-type file.  Exiting generateSoilTemperature( )\n");
+                return;
+                }
+
+
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(SOIL_TEMPERATURE, yyyy, mm, dd, hh, fff, em, fileName);
@@ -91,29 +105,59 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 		if( (ncepUpperSoilTemperature != NULL) && !found1 ) grib_handle_delete(ncepUpperSoilTemperature);
 		if( (ncepLowerSoilTemperature != NULL) && !found2 ) grib_handle_delete(ncepLowerSoilTemperature);
 		
-		if( !found1 && !found2 ){
-		// search for the first one.
-			ncepUpperSoilTemperature = grib_handle_new_from_file(0, bFile, &errorCode);
-			if (ncepUpperSoilTemperature == NULL) {
+		if( !found1 && !found2 )
+			{
+			// search for the first one.
+			// With Dec.02.2015 GENS change, we need to be looking through BOTH a&b
+
+
+			//printf("DEBUG: Looking through A file.\n");
+			ncepUpperSoilTemperature = grib_handle_new_from_file(0, aFile, &errorCode);
+
+			if( ncepUpperSoilTemperature == NULL ) 
+				{
+				// printf("DEBUG: Looking through B file.\n");
+				ncepUpperSoilTemperature = grib_handle_new_from_file( 0, bFile, &errorCode );
+				}
+
+
+			if( ncepUpperSoilTemperature == NULL ) 
+				{
 				printf("Error: (ncepUpperSoilTemperature) unable to create handle from file. error code: %d \n", errorCode);
 				return;
-			}
+				}
+
+
 			GRIB_CHECK(grib_get_long(ncepUpperSoilTemperature, "discipline", &ncepDiscipline), 0);
 			GRIB_CHECK(grib_get_long(ncepUpperSoilTemperature, "parameterCategory", &ncepParameterCategory), 0);
 			GRIB_CHECK(grib_get_long(ncepUpperSoilTemperature, "parameterNumber", &ncepParameterNumber), 0);
 			GRIB_CHECK(grib_get_long(ncepUpperSoilTemperature, "typeOfFirstFixedSurface", &ncepLevel), 0);
 			GRIB_CHECK(grib_get_long(ncepUpperSoilTemperature, "scaledValueOfFirstFixedSurface", &ncepLevelValue), 0);
 
+
+//printf("DEBUG (%i %i %i %i %i) \n",ncepDiscipline,ncepParameterCategory,ncepParameterNumber,ncepLevel,ncepLevelValue);
+
 			// if it is either one of the variables.
-			if( ((ncepDiscipline == 0) && (ncepParameterCategory == 0) && (ncepParameterNumber == 0) && (ncepLevel == 106) && (ncepLevelValue == 0) ) ||
-				((ncepDiscipline == 0) && (ncepParameterCategory == 0) && (ncepParameterNumber == 0) && (ncepLevel == 106) && (ncepLevelValue == 10) ) ){
+			if( ((ncepDiscipline == 2) && (ncepParameterCategory == 0) && (ncepParameterNumber == 2) && (ncepLevel == 106) && (ncepLevelValue == 0) ) ||
+				((ncepDiscipline == 2) && (ncepParameterCategory == 0) && (ncepParameterNumber == 2) && (ncepLevel == 106) && (ncepLevelValue == 10) ) )
+				{
 				found1 = 1;
 				ncepDiscipline = ncepParameterCategory = ncepParameterNumber = ncepLevel = ncepLevelValue = -1;
 			}
 		
-		}else if( found1 && !found2){
-		// search for the second one.
+		}else if( found1 && !found2)
+			{
+			// search for the second one.
+
 			ncepLowerSoilTemperature = grib_handle_new_from_file(0, aFile, &errorCode);
+
+				// As like above, try the B file too.
+                        if (ncepLowerSoilTemperature == NULL)
+				{
+				ncepLowerSoilTemperature = grib_handle_new_from_file(0, bFile, &errorCode );
+				}
+
+
 			if (ncepLowerSoilTemperature == NULL) {
 				printf("Error22: (ncepLowerSoilTemperature) unable to create handle from file. error code: %d \n", errorCode);
 				return;
@@ -125,22 +169,22 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 			GRIB_CHECK(grib_get_long(ncepLowerSoilTemperature, "scaledValueOfFirstFixedSurface", &ncepLevelValue), 0);
 			
 			// if it is either one of the variables
-			if( ((ncepDiscipline == 0) && (ncepParameterCategory == 0) && (ncepParameterNumber == 0) && (ncepLevel == 106) && (ncepLevelValue == 0) ) ||
-				((ncepDiscipline == 0) && (ncepParameterCategory == 0) && (ncepParameterNumber == 0) && (ncepLevel == 106) && (ncepLevelValue == 10) ) ){
+			if( ((ncepDiscipline == 2) && (ncepParameterCategory == 0) && (ncepParameterNumber == 2) && (ncepLevel == 106) && (ncepLevelValue == 0) ) ||
+				((ncepDiscipline == 2) && (ncepParameterCategory == 0) && (ncepParameterNumber == 2) && (ncepLevel == 106) && (ncepLevelValue == 10) ) ){
 				found2 = 1;
 				ncepDiscipline = ncepParameterCategory = ncepParameterNumber = ncepLevel = ncepLevelValue = -1;
 			}
 		}
 	}
 	
-	ncepUpperSoilTemperatureValues = calloc(65160, sizeof(double));
-	ncepLowerSoilTemperatureValues = calloc(65160, sizeof(double));
-	GRIB_CHECK(grib_get_double_array(ncepUpperSoilTemperature, "values", ncepUpperSoilTemperatureValues, &ncepUpperSoilTemperatureSize), 0);
-	GRIB_CHECK(grib_get_double_array(ncepLowerSoilTemperature, "values", ncepLowerSoilTemperatureValues, &ncepLowerSoilTemperatureSize), 0);
+	ncepUpperSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
+	ncepLowerSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
+	GRIB_CHECK(grib_get_double_array(ncepUpperSoilTemperature, "values", ncepUpperSoilTemperatureValues, &ncepValuesSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepLowerSoilTemperature, "values", ncepLowerSoilTemperatureValues, &ncepValuesSize), 0);
 
 
 	// both are now stored off.
-	tiggeSoilTemperatureValues = calloc(65160, sizeof(double));
+	tiggeSoilTemperatureValues = calloc(ncepValuesSize, sizeof(double));
 
 
 	if(tiggeSoilTemperatureValues == NULL){
@@ -151,12 +195,12 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	GRIB_CHECK( grib_set_long(gh, "bitMapIndicator", 0), 0);
 
 	// for each point in the grid.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		tiggeSoilTemperatureValues[i] = (ncepUpperSoilTemperatureValues[i] + ncepLowerSoilTemperatureValues[i]) / 2.0;
 	}
 
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilTemperatureValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilTemperatureValues, ncepValuesSize),  0);
 	
 
 	if(writeGribToFile(gh, fileName) != 0){
@@ -173,7 +217,8 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle_delete(gh);
 	grib_handle_delete(ncepUpperSoilTemperature);
 	grib_handle_delete(ncepLowerSoilTemperature);
-	// rewind the file
+
+	// rewind the files
 	rewind(aFile);
 	rewind(bFile);
 

@@ -15,7 +15,7 @@
 #include <time.h>
 #include <math.h>
 
-#define ENSEMBLE_MEMBERS 21
+// #define ENSEMBLE_MEMBERS 21
 #define FORECAST_HOURS 384
 #define NUMBER_OF_VARIABLES 13
 #define QUEUE_MAX 11
@@ -69,62 +69,58 @@ void fillQueueWithBogusData();
 int writeGribToFile(grib_handle*, char*);
 int generateFileName(int, int, int, int, int, int, int, char*);
 void generateInputFilename(int, int, int, int, int, int, int, char*);
+int get_n_members(int, int, int, int);
+int get_n_points(int, int, int, int);
+int get_n_lat(int, int, int, int);
+int get_n_lon(int, int, int, int);
+int get_gen_proc_id(int, int, int, int);
 void timadd (struct dt *, struct dt *);
 int qleap (int);
 void timeAdd (struct dt *dtim, struct dt *dto);
 int qleap (int year);
 
 /* from newGribRecord.c */
-grib_handle* newGribRecord(int, int, int, int, int, int);
-grib_handle* newBlankGribRecord( long, long, long, long );
+grib_handle* newGribRecord(int, int, int, int, int, int, int, int );
+grib_handle* newBlankGribRecord( long, long, long, long, int, int );
 
 /* from generateVariable.c */
 int generateVariable(int, int, int, int, int, int, int, void**);
 
 /* from loadDataForVariable.c */
 void** addGribRecordToArray(int, void**, const void*, size_t);
-void** loadDataForVariable(int, void**);
+void** loadDataForVariable(int, void**, int, int);
 void freeDataForVariable(int, void**);
-
-
-
-
-/* Other generate<Variable> function definitions */
-/* testVariable */
-void generateTestVariable(int, int, int, int, int, int);
-void generateTestVariableTi(int, int, int, int, int, void**);
-void** loadDataForTestVariable(void**);
 
 /* from generateSnowFallWaterEquivalent.c */
 void generateSnowFallWaterEquivalent(int, int, int, int, int, int);
 
 /* from generateTimeIntegratedSnowFallWaterEquivalent.c */
 void generateTimeIntegratedSnowFallWaterEquivalent(int, int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void**);
+void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void**, int, int);
 
 /* from generateTimeIntegratedOutgoingLongWaveRadiation.c */
 void generateTimeIntegratedOutgoingLongWaveRadiation(int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void**);
+void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void**, int, int);
 
 /* from generateTimeIntegratedSurfaceLatentHeatFlux.c */
 void generateTimeIntegratedSurfaceLatentHeatFlux(int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedSurfaceLatentHeatFlux(void**);
+void** loadDataForTimeIntegratedSurfaceLatentHeatFlux(void**, int, int);
 
 /* from generateTimeIntegratedSurfaceLatentHeatFlux.c */
 void generateTimeIntegratedSurfaceSensibleHeatFlux(int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void**);
+void** loadDataForTimeIntegratedSurfaceSensibleHeatFlux(void**, int, int);
 
 /* from generateTimeIntegratedSurfaceNetSolarRadiation.c */
 void generateTimeIntegratedSurfaceNetSolarRadiation(int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void**);
+void** loadDataForTimeIntegratedSurfaceNetSolarRadiation(void**, int, int);
 
 /* from generateTimeIntegratedSurfaceNetSolarRadiation.c */
 void generateTimeIntegratedSurfaceNetThermalRadiation(int, int, int, int, int, void**);
-void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void**);
+void** loadDataForTimeIntegratedSurfaceNetThermalRadiation(void**, int, int);
 
 /* from generateTotalPrecipitation.c */
 void generateTotalPrecipitation(int, int, int, int, int, void**);
-void** loadDataForTotalPrecipitation(void**);
+void** loadDataForTotalPrecipitation(void**, int, int);
 
 /* from generateTotalColumnWater.c */
 void generateTotalColumnWater(int, int, int, int, int, int);

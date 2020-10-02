@@ -1,10 +1,8 @@
 # Makefile for ncdcTigge
-# NCDC TIGGE project.
-# 2007-2016
-
-# ifndef TIGGE_TOOLS
-# $(error ENV VAR TIGGE_TOOLS is not set, this should be the base PATH where you exported the repository - it contains ./src ./bin, etc. )
-# endif
+# NCEI TIGGE project.
+# 2007-2020
+#
+# Transfered to EMC 2020
 
 TIGGE_TOOLS = $(CURDIR)/..
 
@@ -16,11 +14,11 @@ DIST_PREFIX = $(HOME)/tigge
 
 # Files Listed Here
 SRC = util.c newGribRecord.c loadDataForVariable.c generateVariable.c \
-	loadDataForTestVariable.c generateTestVariable.c generateTimeIntegratedSnowFallWaterEquivalent.c generateSnowFallWaterEquivalent.c \
-	generateTimeIntegratedOutgoingLongWaveRadiation2016.c generateTimeIntegratedSurfaceLatentHeatFlux2016.c \
-	generateTimeIntegratedSurfaceSensibleHeatFlux2016.c generateTimeIntegratedSurfaceNetSolarRadiation2016.c \
-	generateTimeIntegratedSurfaceNetThermalRadiation2016.c generateTotalPrecipitation.c generateTotalColumnWater.c \
-	generatePotentialTemperature.c generateSoilTemperature2016.c generateSoilMoisture.c
+	generateTimeIntegratedSnowFallWaterEquivalent.c generateSnowFallWaterEquivalent.c \
+	generateTimeIntegratedOutgoingLongWaveRadiation.c generateTimeIntegratedSurfaceLatentHeatFlux.c \
+	generateTimeIntegratedSurfaceSensibleHeatFlux.c generateTimeIntegratedSurfaceNetSolarRadiation.c \
+	generateTimeIntegratedSurfaceNetThermalRadiation.c generateTotalPrecipitation.c generateTotalColumnWater.c \
+	generatePotentialTemperature.c generateSoilTemperature.c generateSoilMoisture.c
 	
 OBJ = $(SRC:.c=.o)
 

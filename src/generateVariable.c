@@ -55,6 +55,8 @@ int generateVariable(int varName, int yyyy, int mm, int dd, int hh, int fff, int
 		return 0;
 	}
 
+	printf("%s %s%s","Generating data for: ",variableShortName(varName),"\n");
+
 	// SNOW_FALL_WATER_EQUIVALENT
 	if(varName == SNOW_FALL_WATER_EQUIVALENT){
 	  generateSnowFallWaterEquivalent(yyyy, mm, dd, hh, fff, em);
@@ -116,21 +118,6 @@ int generateVariable(int varName, int yyyy, int mm, int dd, int hh, int fff, int
 	if(varName == SOIL_TEMPERATURE){
 		generateSoilTemperature(yyyy, mm, dd, hh, fff, em);
 	}
-
-
-	/*
-	// TEST_VARIABLE
-	if(varName == TEST_VARIABLE){
-		generateTestVariable(yyyy, mm, dd, hh, fff, em);
-	}
-	
-	
-	if(varName == TEST_VARIABLE_TI){
-	// do the time integrated stuff.
-		generateTestVariableTi(yyyy, mm, dd, hh, em, resource);
-	}
-	*/
-	
 
 	return 0;
 }

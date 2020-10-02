@@ -10,11 +10,12 @@
 void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepTotalPrecipWater = NULL;
-	size_t ncepTotalPrecipWaterSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	double* ncepTotalPrecipWaterValues = NULL;
 	
 	grib_handle* ncepTotalCloudWater = NULL;
-	size_t ncepTotalCloudWaterSize = 65160;
 	double* ncepTotalCloudWaterValues = NULL;
 	
 	double* tiggeTotalColumnWaterValues = NULL;	
@@ -40,7 +41,7 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 	}
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(TOTAL_COLUMN_WATER, yyyy, mm, dd, hh, fff, em, fileName);
@@ -104,14 +105,14 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 		GRIB_CHECK(grib_get_long(ncepTotalPrecipWater, "typeOfFirstFixedSurface", &ncepLevel), 0);
 	}	
 
-	GRIB_CHECK(grib_get_size(ncepTotalPrecipWater, "values", &ncepTotalPrecipWaterSize), 0);
+	GRIB_CHECK(grib_get_size(ncepTotalPrecipWater, "values", &ncepValuesSize), 0);
 	
-	ncepTotalPrecipWaterValues = calloc(ncepTotalPrecipWaterSize, sizeof(double));
+	ncepTotalPrecipWaterValues = calloc(ncepValuesSize, sizeof(double));
 	if(ncepTotalPrecipWaterValues == NULL){
 		fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Precipital Water.  Exiting...\n");
 		exit(1);
 	}
-	GRIB_CHECK(grib_get_double_array(ncepTotalPrecipWater, "values", ncepTotalPrecipWaterValues, &ncepTotalPrecipWaterSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepTotalPrecipWater, "values", ncepTotalPrecipWaterValues, &ncepValuesSize), 0);
 
 	
 	//
@@ -138,38 +139,35 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 	}
 
 	// we have the grib_handle now.
-	GRIB_CHECK(grib_get_size(ncepTotalCloudWater, "values", &ncepTotalCloudWaterSize), 0);
-	ncepTotalCloudWaterValues = calloc(ncepTotalCloudWaterSize, sizeof(double));
+	GRIB_CHECK(grib_get_size(ncepTotalCloudWater, "values", &ncepValuesSize), 0);
+	ncepTotalCloudWaterValues = calloc(ncepValuesSize, sizeof(double));
 	
 	if(ncepTotalCloudWaterValues == NULL){
 		fprintf(stderr, "Error, There was a problem Allocating the memory for storing the data. Exiting generateTotalColumnWater()\n");
 		exit(1);
 	}	
 	
-
-	GRIB_CHECK(grib_get_double_array(ncepTotalCloudWater, "values", ncepTotalCloudWaterValues, &ncepTotalCloudWaterSize), 0);	
+	GRIB_CHECK(grib_get_double_array(ncepTotalCloudWater, "values", ncepTotalCloudWaterValues, &ncepValuesSize), 0);	
 	
 
 	// both are now stored off.
 
 	
-	tiggeTotalColumnWaterValues = calloc(65160, sizeof(double));
+	tiggeTotalColumnWaterValues = calloc(ncepValuesSize, sizeof(double));
 	if(tiggeTotalColumnWaterValues == NULL){
 		fprintf(stderr, "Error, There was a problem Allocating the memory for storing the data. Exiting generateTotalColumnWater()\n");
 		exit(1);
 	}
 	
-	
 	// for each point in the grid.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		tiggeTotalColumnWaterValues[i] = ncepTotalPrecipWaterValues[i] + ncepTotalCloudWaterValues[i];
 	}
 	
 
 
-	
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTotalColumnWaterValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTotalColumnWaterValues, ncepValuesSize),  0);
 	
 	
 	if(writeGribToFile(gh, fileName) != 0){

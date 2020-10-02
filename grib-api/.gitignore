@@ -4,3 +4,12 @@ config.log
 config.status
 libtool
 rpms/grib_api.spec
+fortran/grib_f90.f90
+fortran/grib_kinds.h
+fortran/grib_types
+fortran/same_int_long
+fortran/same_int_size_t
+tigge/tigge_accumulations
+tigge/tigge_check
+tigge/tigge_name
+tigge/tigge_split

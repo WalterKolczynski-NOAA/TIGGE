@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!DOCTYPE workflow
 [
-	<!ENTITY PSLOT "TIGGE">
+	<!ENTITY PSLOT "TIGGE from Prod">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY SDATE "2020072000">
-	<!ENTITY EDATE "2020072000">
+	<!ENTITY SDATE "2020092906">
+	<!ENTITY EDATE "2022123118">
 	<!ENTITY INCYC "06">
 	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
-	<!ENTITY GEFS_COM "&TIGGE_PTMP;/tape">
+	<!ENTITY GEFS_COM "/gpfs/dell4/nco/ops/com/gefs/prod">
 
 	<!ENTITY ACCOUNT "GEN-T2O">
 	<!ENTITY SCHEDULER "lsf">
@@ -16,10 +16,9 @@
 	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
 
 	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
-	<!ENTITY pull_from_hpss SYSTEM "pull_from_hpss.xml">
-	<!ENTITY link_input SYSTEM "link_input.xml">
-	<!ENTITY process_tigge SYSTEM "process_tigge.xml">
-	<!ENTITY transfer_output SYSTEM "transfer_output.xml">
+	<!ENTITY link_input SYSTEM "tasks/link_input.xml">
+	<!ENTITY process_tigge SYSTEM "tasks/process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "tasks/transfer_output.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
@@ -27,7 +26,6 @@
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
 
 	<cycledef group="tigge">&SDATE;00 &EDATE;00 &INCYC;:00:00</cycledef>
-	&pull_from_hpss;
 	&link_input;
 	&process_tigge;
 	&transfer_output;

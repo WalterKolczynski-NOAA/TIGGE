@@ -13,11 +13,13 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
-	runningSum = calloc(65160, sizeof(double));
+	runningSum = calloc(ncepValuesSize, sizeof(double));
 
 	double* tiggeTimeIntegratedOutgoingLongWaveRadiationValues = NULL;	
 	
@@ -40,6 +42,8 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 	grib_handle* ncepGribRecord = NULL;
 	// for each forecast  hour.
 	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
+
+// printf("\nDEBUG : fct = %i\n",fff);
 		
 	        // populate tmEnd with forecast time offset, add to initial time 
 	        tmEnd.yr = 0;
@@ -49,12 +53,17 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 		tmEnd.mn = 0;  
 		timeAdd (&tmInit, &tmEnd);
 
+if( ! resource[fff/6] )
+	{ fprintf(stderr, "ERROR: resource (%i) is NULL\n", fff/6 );  continue;  }
+if( ! bytesPerRecord[TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION][fff/6] )
+	{ fprintf(stderr, "ERROR: bytesPerRecord[ %i ] is null!\n", fff/6 );  continue;  }
+
 		ncepGribRecord = grib_handle_new_from_message(NULL, resource[fff/6], bytesPerRecord[TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION][fff/6]);
 		GRIB_CHECK(grib_get_long(ncepGribRecord, "parameterNumber", &temp), 0);
 		
 		// read the values.
 		ncepValues = calloc(ncepValuesSize, sizeof(double));
-		tiggeTimeIntegratedOutgoingLongWaveRadiationValues = calloc(65160, sizeof(double));
+		tiggeTimeIntegratedOutgoingLongWaveRadiationValues = calloc(ncepValuesSize, sizeof(double));
 
 		GRIB_CHECK(grib_get_double_array(ncepGribRecord, "values", ncepValues, &ncepValuesSize), 0);
 				
@@ -67,14 +76,14 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 
 		if(fff == 0){
 			//printf("fff == 0\n");
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				// runningSum[i] = ncepValues[i];
 				//  2014-03-10 must NOT count initial time step
 				runningSum[i] = 0.0;
 				tiggeTimeIntegratedOutgoingLongWaveRadiationValues[i] = 0.0;
 			}
 		}else{
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				runningSum[i] += ncepValues[i];
 
 				// Mar.2014 unit conversion fix.
@@ -85,9 +94,11 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 			}
 		}
 		
+// printf("DEBUG : -01- %i \n", fff );
+
 		
 		// now create a new grib_handle to store the data.
-		gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+		gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 		
 		GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 		
@@ -122,10 +133,15 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 		
 		GRIB_CHECK(grib_set_long(gh, "startStep", 0), 0);
 		GRIB_CHECK(grib_set_long(gh, "endStep", (long)fff ), 0);
-		
+
+// printf("DEBUG : -02- %i \n", fff );
+
 		// store the data into the grib file
-		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedOutgoingLongWaveRadiationValues, 65160),  0);
-		
+		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTimeIntegratedOutgoingLongWaveRadiationValues, ncepValuesSize),  0);
+	
+
+// printf("DEBUG: wrote %s", fileName  );
+
 		writeGribToFile(gh, fileName);
 
 		// clean up after ourselves.
@@ -155,7 +171,7 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 **
 **
 */
-void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers){
+void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers, int n_lat, int n_lon){
 
 	// seek to a variable.
 	grib_handle* h = NULL;
@@ -165,9 +181,6 @@ void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers){
 	size_t size = 0;
 	long sizeLong = 0;
 	long ncepDiscipline, ncepCategory, ncepVariable, ncepLevel;
-		
-
-
 
 	// test if this is the first one.
 	if(!numberOfSavedRecords[TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION]){
@@ -182,15 +195,23 @@ void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers){
 			grib_handle_delete(h);
 		}
 		h = grib_handle_new_from_file(0, aFile, &err);
-		if (h == NULL) {
-			printf("Error (generateTimeIntegratedOutgoingLongWaveRadiation) unable to create handle from file. error code: %d \n", err);
-			return NULL;
-		}
+                if (h == NULL) 
+			{ h = grib_handle_new_from_file( 0, bFile, &err ); }
+		if (h == NULL && ignoreMissingInput != 0 ) 
+			{
+			h = newBlankGribRecord( 0, 5, 193, 8, n_lat, n_lon );
+			}
+		if (h == NULL && ignoreMissingInput == 0 )
+			{
+			printf("Error (generateTimeIntegratedOutgoingLongWaveRadiation) unable to create handle from file. error code: %d :: implanting blank grib record. \n", err);
+			return(NULL);
+			}
+
 		GRIB_CHECK(grib_get_long(h, "discipline", &ncepDiscipline), 0);
 		GRIB_CHECK(grib_get_long(h, "parameterCategory", &ncepCategory), 0);
 		GRIB_CHECK(grib_get_long(h, "parameterNumber", &ncepVariable), 0);
 		GRIB_CHECK(grib_get_long(h, "typeOfFirstFixedSurface", &ncepLevel), 0);
-	}
+		}
 
 	//printf("%ld, %ld, %ld, %ld\n", ncepDiscipline, ncepCategory, ncepVariable, ncepLevel);
 	

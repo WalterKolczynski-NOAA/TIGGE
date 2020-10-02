@@ -110,6 +110,9 @@ int main(int argc, char** argv)
 	
 	printf("Done Arg parser.\n\n");
 
+	int n_lon = get_n_lon(year,month,day,hour);
+	int n_lat = get_n_lat(year,month,day,hour);
+
 	/* Definitions for the Time Integrated Variables */
 	//void** testVariableBuffer = NULL;
 
@@ -130,7 +133,7 @@ int main(int argc, char** argv)
 	printf("=========================================================\n\n");
 
 	// for each ensemble member, we are going to generate all the variables.
-	for(ensembleMember = 0; ensembleMember < ENSEMBLE_MEMBERS; ensembleMember++)
+	for(ensembleMember = 0; ensembleMember < get_n_members(year, month, day, hour); ensembleMember++)
 		{
 		//printf("Ensemble Member: %d\n  ", ensembleMember);
 
@@ -180,11 +183,11 @@ int main(int argc, char** argv)
 
 			printf("+");
 
-                        timeIntegratedOutgoingLongWaveRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION, timeIntegratedOutgoingLongWaveRadiationBuffer);
-                        timeIntegratedSurfaceLatentHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_LATENT_HEAT_FLUX, timeIntegratedSurfaceLatentHeatFluxBuffer);
-                        timeIntegratedSurfaceSensibleHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX, timeIntegratedSurfaceSensibleHeatFluxBuffer);
-                        timeIntegratedSurfaceNetSolarRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION, timeIntegratedSurfaceNetSolarRadiationBuffer);
-                        timeIntegratedSurfaceNetThermalRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION, timeIntegratedSurfaceNetThermalRadiationBuffer);
+			timeIntegratedOutgoingLongWaveRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION, timeIntegratedOutgoingLongWaveRadiationBuffer, n_lat, n_lon);
+			timeIntegratedSurfaceLatentHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_LATENT_HEAT_FLUX, timeIntegratedSurfaceLatentHeatFluxBuffer, n_lat, n_lon);
+			timeIntegratedSurfaceSensibleHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX, timeIntegratedSurfaceSensibleHeatFluxBuffer, n_lat, n_lon);
+			timeIntegratedSurfaceNetSolarRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION, timeIntegratedSurfaceNetSolarRadiationBuffer, n_lat, n_lon);
+			timeIntegratedSurfaceNetThermalRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION, timeIntegratedSurfaceNetThermalRadiationBuffer, n_lat, n_lon);
 
 			// End of the fields that have missing file protection.
 			ignoreMissingInput = 0;
@@ -202,8 +205,8 @@ int main(int argc, char** argv)
 			//testVariableBuffer = loadDataForVariable(TEST_VARIABLE_TI, testVariableBuffer);
 
 
-			totalPrecipitationBuffer = loadDataForVariable(TOTAL_PRECIPITATION, totalPrecipitationBuffer);
-            timeIntegratedSnowFallWaterEquivalentBuffer = loadDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer);
+			totalPrecipitationBuffer = loadDataForVariable(TOTAL_PRECIPITATION, totalPrecipitationBuffer, n_lat, n_lon);
+            timeIntegratedSnowFallWaterEquivalentBuffer = loadDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer, n_lat, n_lon);
 
 			// close the ncep files that are still open.
 			fclose(aFile);

@@ -25,7 +25,7 @@
 void** addGribRecordToArray(int varName, void** array, const void* record, size_t size){
 	// do some memory swapping to append the grib_handle to the end of the array.
 	void* newRecord = NULL;
-	void** tempArray = NULL;	
+	void** tempArray = NULL;
 
 
 	// generate the size of the old array
@@ -71,8 +71,10 @@ void** addGribRecordToArray(int varName, void** array, const void* record, size_
 ** Returns:
 **	void**	returns the pointer to the array storing the grib records.
 */
-void** loadDataForVariable(int varName, void** gribBuffer)
+void** loadDataForVariable(int varName, void** gribBuffer, int n_lat, int n_lon)
 	{
+
+	printf("%s %s%s","Loading data for: ",variableShortName(varName),"\n");
 
 	// first, test if the variable is a real one.
 	if( variableShortName(varName) == NULL )
@@ -89,42 +91,39 @@ void** loadDataForVariable(int varName, void** gribBuffer)
 		}
 
 	// add to this if() switch when you get more variables.
-	if(varName == TEST_VARIABLE_TI ) 
-		{ return loadDataForTestVariable(gribBuffer); }
-	
 	if(varName == TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION)
 		{ 
-		return loadDataForTimeIntegratedOutgoingLongWaveRadiation(gribBuffer);
+		return loadDataForTimeIntegratedOutgoingLongWaveRadiation(gribBuffer, n_lat, n_lon);
 		}
 
 	if(varName == TIME_INTEGRATED_SURFACE_LATENT_HEAT_FLUX)
 		{
-		return loadDataForTimeIntegratedSurfaceLatentHeatFlux(gribBuffer);
+		return loadDataForTimeIntegratedSurfaceLatentHeatFlux(gribBuffer, n_lat, n_lon);
 		}
 
 	if(varName == TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX)
 		{
-		return loadDataForTimeIntegratedSurfaceSensibleHeatFlux(gribBuffer);
+		return loadDataForTimeIntegratedSurfaceSensibleHeatFlux(gribBuffer, n_lat, n_lon);
 		}
 	
 	if(varName == TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION)
 		{
-		return loadDataForTimeIntegratedSurfaceNetSolarRadiation(gribBuffer);
+		return loadDataForTimeIntegratedSurfaceNetSolarRadiation(gribBuffer, n_lat, n_lon);
 		}
 	
 	if(varName == TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION)
 		{
-		return loadDataForTimeIntegratedSurfaceNetThermalRadiation(gribBuffer);
+		return loadDataForTimeIntegratedSurfaceNetThermalRadiation(gribBuffer, n_lat, n_lon);
 		}
 
     if(varName == TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT )
         {
-        return loadDataForTimeIntegratedSnowFallWaterEquivalent(gribBuffer);
+        return loadDataForTimeIntegratedSnowFallWaterEquivalent(gribBuffer, n_lat, n_lon);
         }
 
 	if(varName == TOTAL_PRECIPITATION)
 		{
-		return loadDataForTotalPrecipitation(gribBuffer);
+		return loadDataForTotalPrecipitation(gribBuffer, n_lat, n_lon);
 		}
 	
 	return NULL;

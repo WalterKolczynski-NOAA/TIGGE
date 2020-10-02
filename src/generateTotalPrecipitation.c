@@ -13,11 +13,13 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
-	runningSum = calloc(65160, sizeof(double));
+	runningSum = calloc(ncepValuesSize, sizeof(double));
 
 	double* tiggeTotalPrecipitationValues = NULL;	
 	
@@ -27,9 +29,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 	if(runningSum == NULL){
 		fprintf(stderr, "Failed to allocate memory for Total Precipitation.  Exiting...\n");
 		exit(1);
-	}
-	
-
+	}	
 
 	grib_handle* ncepGribRecord = NULL;
 	// for each forecast  hour.
@@ -42,7 +42,8 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 
 		// read the values.
 		ncepValues = calloc(ncepValuesSize, sizeof(double));
-		tiggeTotalPrecipitationValues = calloc(65160, sizeof(double));
+		tiggeTotalPrecipitationValues = calloc(ncepValuesSize, sizeof(double));
+		
 		if(fff != 0){
 			GRIB_CHECK(grib_get_double_array(ncepGribRecord, "values", ncepValues, &ncepValuesSize), 0);
 		}
@@ -56,12 +57,12 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 
 		if(fff == 0){
 			//printf("fff == 0\n");
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				runningSum[i] = ncepValues[i];
 				tiggeTotalPrecipitationValues[i] = 0.0;
 			}
 		}else{
-			for(i=0; i<65160; i++){
+			for(i=0; i<ncepValuesSize; i++){
 				runningSum[i] += ncepValues[i];
 				tiggeTotalPrecipitationValues[i] = runningSum[i];
 			}
@@ -69,7 +70,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 	
 
 		// now create a new grib_handle to store the data.
-		gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+		gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 		
 		GRIB_CHECK(grib_set_long(gh, "productDefinitionTemplateNumber", 11), 0);
 
@@ -110,7 +111,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 		GRIB_CHECK(grib_set_long(gh, "endStep", (long) fff), 0);
 		
 		// store the data into the grib file
-		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTotalPrecipitationValues, 65160),  0);
+		GRIB_CHECK( grib_set_double_array(gh, "values", tiggeTotalPrecipitationValues, ncepValuesSize),  0);
 		
 		writeGribToFile(gh, fileName);
 
@@ -125,10 +126,6 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 }
 
 
-
-
-
-
 /*
 ** loadDataForTotalPrecipitation()
 **  Loads the required data needed to calculate the pt variable.
@@ -141,7 +138,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 **
 **
 */
-void** loadDataForTotalPrecipitation(void** gribBuffers)
+void** loadDataForTotalPrecipitation(void** gribBuffers, int n_lat, int n_lon)
 	{
 	// seek to a variable.
 	grib_handle* h = NULL;
@@ -149,6 +146,7 @@ void** loadDataForTotalPrecipitation(void** gribBuffers)
 	void** retBuffer = NULL;
 	const void* buffer = NULL;
 	size_t size = 0;
+	size_t ncepValuesSize = n_lat * n_lon;
 	long sizeLong = 0;
 	long ncepDiscipline, ncepCategory, ncepVariable, ncepLevel;
 	int first = 0;
@@ -157,8 +155,7 @@ void** loadDataForTotalPrecipitation(void** gribBuffers)
 	if(!numberOfSavedRecords[TOTAL_PRECIPITATION]){
 		numberOfSavedRecords[TOTAL_PRECIPITATION] = 0;
 		first = 1;
-	}
-	
+	}	
 	
 	if(!first){
 		ncepDiscipline = ncepCategory = ncepVariable = ncepLevel = -1; 
@@ -184,8 +181,8 @@ void** loadDataForTotalPrecipitation(void** gribBuffers)
 		GRIB_CHECK(grib_get_message(h, &buffer, &size), 0);
 	}else{
 		// if we are on the 0h forecast
-		buffer = calloc(65160, sizeof(double));
-		size = 65160;
+		buffer = calloc(ncepValuesSize, sizeof(double));
+		size = ncepValuesSize;
 	}	
 
 	// store the data into the buffer

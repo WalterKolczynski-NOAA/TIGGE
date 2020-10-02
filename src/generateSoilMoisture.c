@@ -9,11 +9,12 @@
 void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepUpperSoilMoisture = NULL;
-	size_t ncepUpperSoilMoistureSize = 65160;
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
 	double* ncepUpperSoilMoistureValues = NULL;
 	
 	grib_handle* ncepLowerSoilMoisture = NULL;
-	size_t ncepLowerSoilMoistureSize = 65160;
 	double* ncepLowerSoilMoistureValues = NULL;
 	
 	double* tiggeSoilMoistureValues = NULL;	
@@ -35,7 +36,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	}
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	generateFileName(SOIL_MOISTURE, yyyy, mm, dd, hh, fff, em, fileName);
@@ -139,14 +140,14 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 		}
 	}
 	
-	ncepUpperSoilMoistureValues = calloc(65160, sizeof(double));
-	ncepLowerSoilMoistureValues = calloc(65160, sizeof(double));
-	GRIB_CHECK(grib_get_double_array(ncepUpperSoilMoisture, "values", ncepUpperSoilMoistureValues, &ncepUpperSoilMoistureSize), 0);
-	GRIB_CHECK(grib_get_double_array(ncepLowerSoilMoisture, "values", ncepLowerSoilMoistureValues, &ncepLowerSoilMoistureSize), 0);
+	ncepUpperSoilMoistureValues = calloc(ncepValuesSize, sizeof(double));
+	ncepLowerSoilMoistureValues = calloc(ncepValuesSize, sizeof(double));
+	GRIB_CHECK(grib_get_double_array(ncepUpperSoilMoisture, "values", ncepUpperSoilMoistureValues, &ncepValuesSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepLowerSoilMoisture, "values", ncepLowerSoilMoistureValues, &ncepValuesSize), 0);
 
 
 	// both are now stored off.
-	tiggeSoilMoistureValues = calloc(65160, sizeof(double));
+	tiggeSoilMoistureValues = calloc(ncepValuesSize, sizeof(double));
 
 
 	if(tiggeSoilMoistureValues == NULL){
@@ -157,7 +158,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	GRIB_CHECK( grib_set_long(gh, "bitMapIndicator", 0), 0);
 
 	// for each point in the grid.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		if( (ncepUpperSoilMoistureValues[i] == 9999.0) || (ncepLowerSoilMoistureValues[i] == 9999.0) ) {
 			tiggeSoilMoistureValues[i] = 9999.0;
 		}else{
@@ -166,7 +167,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	}
 
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilMoistureValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggeSoilMoistureValues, ncepValuesSize),  0);
 	
 
 	if(writeGribToFile(gh, fileName) != 0){

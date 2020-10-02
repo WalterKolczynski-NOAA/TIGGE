@@ -7,6 +7,7 @@
 *.Plo
 **/bin
 **/.deps
+.libs
 input
 output
 src/ncdcTigge

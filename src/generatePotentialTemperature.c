@@ -26,9 +26,10 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 	grib_handle* temp = NULL;
 	int pressureNorthFound, pressureSouthFound, temperatureNorthFound, temperatureSouthFound;
 
-	size_t ncepPressureSize = 65160;
-	size_t ncepTemperatureSize = 65160;
-
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	
 	double* ncepPressureNorthValues = NULL;
 	double* ncepPressureSouthValues = NULL;
 	double* ncepTemperatureNorthValues = NULL;
@@ -59,7 +60,7 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 	}
 	
 	// first create the new skeleton file.
-	gh = newGribRecord(yyyy, mm, dd, hh, fff, em);
+	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
 
 	// name format from:   http://tigge.ecmwf.int/ldm_protocol.html
 	// Check if cccc=kwne is correct.
@@ -184,45 +185,45 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 
 
 	// extract the values:  pressure North
-	GRIB_CHECK(grib_get_size(ncepPressureNorth, "values", &ncepPressureSize), 0);
-	ncepPressureNorthValues = calloc(ncepPressureSize, sizeof(double));
+	GRIB_CHECK(grib_get_size(ncepPressureNorth, "values", &ncepValuesSize), 0);
+	ncepPressureNorthValues = calloc(ncepValuesSize, sizeof(double));
 	if(ncepPressureNorthValues == NULL){
 		fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Pressure, Northern Hemisphere.   Exiting...\n");
 		exit(1);
 	}
-	GRIB_CHECK(grib_get_double_array(ncepPressureNorth, "values", ncepPressureNorthValues, &ncepPressureSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepPressureNorth, "values", ncepPressureNorthValues, &ncepValuesSize), 0);
 
 	// extract the values:  pressure South
-	GRIB_CHECK(grib_get_size(ncepPressureSouth, "values", &ncepPressureSize), 0);
-	ncepPressureSouthValues = calloc(ncepPressureSize, sizeof(double));
+	GRIB_CHECK(grib_get_size(ncepPressureSouth, "values", &ncepValuesSize), 0);
+	ncepPressureSouthValues = calloc(ncepValuesSize, sizeof(double));
 	if(ncepPressureSouthValues == NULL){
 		fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Pressure, Southern Hemisphere.   Exiting...\n");
 		exit(1);
 	}
-	GRIB_CHECK(grib_get_double_array(ncepPressureSouth, "values", ncepPressureSouthValues, &ncepPressureSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepPressureSouth, "values", ncepPressureSouthValues, &ncepValuesSize), 0);
 
 	// extract the values:  Temperature North
-	GRIB_CHECK(grib_get_size(ncepTemperatureNorth, "values", &ncepTemperatureSize), 0);
-	ncepTemperatureNorthValues = calloc(ncepTemperatureSize, sizeof(double));
+	GRIB_CHECK(grib_get_size(ncepTemperatureNorth, "values", &ncepValuesSize), 0);
+	ncepTemperatureNorthValues = calloc(ncepValuesSize, sizeof(double));
 	if(ncepTemperatureNorthValues == NULL){
 		fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Temperature, Northern Hemisphere.   Exiting...\n");
 		exit(1);
 	}
-	GRIB_CHECK(grib_get_double_array(ncepTemperatureNorth, "values", ncepTemperatureNorthValues, &ncepTemperatureSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepTemperatureNorth, "values", ncepTemperatureNorthValues, &ncepValuesSize), 0);
 
 	// extract the values:  temperature South
-	GRIB_CHECK(grib_get_size(ncepTemperatureSouth, "values", &ncepTemperatureSize), 0);
-	ncepTemperatureSouthValues = calloc(ncepTemperatureSize, sizeof(double));
+	GRIB_CHECK(grib_get_size(ncepTemperatureSouth, "values", &ncepValuesSize), 0);
+	ncepTemperatureSouthValues = calloc(ncepValuesSize, sizeof(double));
 	if(ncepTemperatureSouthValues == NULL){
 		fprintf(stderr, "ERROR.  Could not allocate the space for the ncep variable: Temperature, Southern Hemisphere.   Exiting...\n");
 		exit(1);
 	}
-	GRIB_CHECK(grib_get_double_array(ncepTemperatureSouth, "values", ncepTemperatureSouthValues, &ncepTemperatureSize), 0);
+	GRIB_CHECK(grib_get_double_array(ncepTemperatureSouth, "values", ncepTemperatureSouthValues, &ncepValuesSize), 0);
 
 
 
 	// set up the new values array.
-	tiggePotentialTemperatureValues = calloc(65160, sizeof(double));
+	tiggePotentialTemperatureValues = calloc(ncepValuesSize, sizeof(double));
 	if(tiggePotentialTemperatureValues == NULL){
 		fprintf(stderr, "Error, There was a problem Allocating the memory for storing the data. Exiting generatePotentialTemperature() 001\n");
 		exit(1);
@@ -234,7 +235,7 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 
 
 	// for each point in the grid calculate potential temperature.
-	for(i=0; i<65160; i++){
+	for(i=0; i<ncepValuesSize; i++){
 		tempPressureValue = 9999.0;
 		tempTemperatureValue = 9999.0;
 	
@@ -281,7 +282,7 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 
 
 	// store the data into the grib file
-	GRIB_CHECK( grib_set_double_array(gh, "values", tiggePotentialTemperatureValues, 65160),  0);
+	GRIB_CHECK( grib_set_double_array(gh, "values", tiggePotentialTemperatureValues, ncepValuesSize),  0);
 	
 	
 	if(writeGribToFile(gh, fileName) != 0){
