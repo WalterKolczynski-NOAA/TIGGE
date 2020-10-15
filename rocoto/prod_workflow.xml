@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE workflow
 [
-	<!ENTITY PSLOT "TIGGE from Prod">
+	<!ENTITY PSLOT "TIGGE_from_Prod">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY SDATE "2020092906">
+	<!ENTITY SDATE "2020093000">
 	<!ENTITY EDATE "2022123118">
 	<!ENTITY INCYC "06">
 	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
