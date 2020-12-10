@@ -13,4 +13,8 @@
 	<dependency>
 		<taskdep task="link_input"/>
 	</dependency>
+	<rewind>
+		<sh><cyclestr>rm &TIGGE_PTMP;/output/runLatest.LOCKFILE.@Y@m@d@H</cyclestr></sh>
+	</rewind>
+
 </task>
