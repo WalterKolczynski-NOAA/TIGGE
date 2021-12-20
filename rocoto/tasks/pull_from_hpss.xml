@@ -10,4 +10,7 @@
 
 	&ENV_VARS;
 	<command><cyclestr>../scripts/pull_from_hpss.sh @Y@m@d@H</cyclestr></command>
+	<rewind>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead,finalize</cyclestr></sh>
+	</rewind>
 </task>

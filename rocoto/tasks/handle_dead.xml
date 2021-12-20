@@ -1,0 +1,32 @@
+<task name="handle_dead" cycledefs="tigge" maxtries="6">
+	<jobname><cyclestr>tigge_dead_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/handle_dead.%J</cyclestr></join>
+	<walltime>00:05:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<memory>10M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>mail -s "A TIGGE job for @Y@m@d_@H dead"</cyclestr> "Walter.Kolczynski@noaa.gov"</command>
+	<dependency>
+		<or>
+			<taskdep task="pull_from_hpss" state="Dead"/>
+			<taskdep task="link_input" state="Dead"/>
+			<taskdep task="process_tigge" state="Dead"/>
+			<and>
+				<taskdep task="archive_output" state="Dead"/>
+				<taskdep task="transfer_output"/>
+			</and>
+			<and>
+				<taskdep task="archive_output"/>
+				<taskdep task="transfer_output" state="Dead"/>
+			</and>
+			<and>
+				<taskdep task="archive_output" state="Dead"/>
+				<taskdep task="transfer_output" state="Dead"/>
+			</and>
+		</or>
+	</dependency>
+</task>

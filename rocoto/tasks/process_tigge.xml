@@ -15,6 +15,7 @@
 	</dependency>
 	<rewind>
 		<sh><cyclestr>rm &TIGGE_PTMP;/output/runLatest.LOCKFILE.@Y@m@d@H</cyclestr></sh>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead,finalize</cyclestr></sh>
 	</rewind>
 
 </task>

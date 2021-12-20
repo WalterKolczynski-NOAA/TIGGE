@@ -1,0 +1,19 @@
+<task name="finalize" cycledefs="tigge" maxtries="1" final="true">
+	<jobname><cyclestr>tigge_finalize_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/finalize.%J</cyclestr></join>
+	<walltime>00:05:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<native>-R 'affinity[core(1)]'</native>
+	<memory>10M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>echo "TIGGE completed for @Y@m@d_@H"</cyclestr></command>
+	<dependency>
+		<and>
+			<taskdep task="archive_output"/>
+			<taskdep task="transfer_output"/>
+		</and>
+	</dependency>
+</task>

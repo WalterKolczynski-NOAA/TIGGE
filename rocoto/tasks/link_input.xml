@@ -127,4 +127,7 @@
 			</and>
 		</or>
 	</dependency>
+	<rewind>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead,finalize</cyclestr></sh>
+	</rewind>
 </task>

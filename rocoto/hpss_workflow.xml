@@ -11,12 +11,17 @@
 	<!ENTITY SCHEDULER "lsf">
 	<!ENTITY SHARED_QUEUE "dev2_shared">
 	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
+	<!ENTITY DATABASE "hpss.db">
+	<!ENTITY WORKFLOW "hpss_workflow.db">
 
 	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
 	<!ENTITY pull_from_hpss SYSTEM "tasks/pull_from_hpss.xml">
 	<!ENTITY link_input SYSTEM "tasks/link_input.xml">
 	<!ENTITY process_tigge SYSTEM "tasks/process_tigge.xml">
 	<!ENTITY transfer_output SYSTEM "tasks/transfer_output.xml">
+	<!ENTITY archive_output SYSTEM "tasks/archive_output.xml">
+	<!ENTITY handle_dead SYSTEM "tasks/handle_dead.xml">
+	<!ENTITY finalize SYSTEM "tasks/finalize.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
@@ -31,6 +36,9 @@
 	&link_input;
 	&process_tigge;
 	&transfer_output;
+	&archive_output;
+	&handle_dead;
+	&finalize;
 
 </workflow>
 
