@@ -1,12 +1,11 @@
-#!/bin/sh --login
-set -x
-
-source $MODULESHOME/init/sh                       2>/dev/null
-module load lsf/10.1                              2>/dev/null
-module use /usrx/local/dev/emc_rocoto/modulefiles 2>/dev/null
-module load ruby/2.5.1 rocoto/complete            2>/dev/null
+#! /usr/bin/env bash
 
 cd $(dirname ${BASH_SOURCE[0]})
+
+source ../scripts/preamble.sh
+source ../scripts/setup_machine.sh
+module use ../modulefiles          > /dev/null 2>&1
+module load rocoto.${MACHINE}      > /dev/null 2>&1
 
 rocotorun -d hpss.db -w hpss_workflow.xml
 
