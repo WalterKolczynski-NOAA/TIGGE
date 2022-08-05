@@ -1,8 +1,11 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
-source $MODULESHOME/init/sh
-module load python/3.6.3
-module load prod_util/1.1.1
+cd "$(dirname ${BASH_SOURCE[0]})"
+source preamble.sh
+source setup_machine.sh
 
-cd "$(dirname $(pwd))/scripts"
-./link_input.py $1
+time=${1}
+module use ../modulefiles > /dev/null 2>&1
+module load run.${MACHINE} > /dev/null 2>&1
+
+./link_input.py ${time}

@@ -1,10 +1,11 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
-set -x
+cd "$(dirname ${BASH_SOURCE[0]})"
+source preamble.sh
+source setup_machine.sh
 
-source $MODULESHOME/init/sh
-module load python/3.6.3
-module load HPSS/5.0.2.5
+time=${1}
+module use ../modulefiles > /dev/null 2>&1
+module load run.${MACHINE} > /dev/null 2>&1
 
-cd "$(dirname $(pwd))/scripts"
-./pull_from_hpss.py $1
+./pull_from_hpss.py $time

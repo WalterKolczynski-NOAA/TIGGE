@@ -1,17 +1,16 @@
-#! /usr/bin/sh
+#! /usr/bin/env bash
 
-set -x
+cd "$(dirname ${BASH_SOURCE[0]})"
+source preamble.sh
+source setup_machine.sh
 
-time=$1
+time=${1}
+module use ../modulefiles  > /dev/null 2>&1
+module load run.${MACHINE} > /dev/null 2>&1
 
-export TIGGE_TOOLS=${TIGGE_TOOLS:-$(dirname $(pwd))}
-export TIGGE_INPUT=${TIGGE_INPUT:-$TIGGE_TOOLS/input}
-export TIGGE_OUTPUT=${TIGGE_OUTPUT:-$TIGGE_TOOLS/output}
+export TIGGE_TOOLS=${TIGGE_TOOLS:-$(cd ..; pwd -P)}
+export TIGGE_INPUT=${TIGGE_INPUT}
+export TIGGE_OUTPUT=${TIGGE_OUTPUT}
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$TIGGE_TOOLS/grib-api/lib"
 
-source $MODULESHOME/init/sh
-module use "$TIGGE_TOOLS/modulefiles"
-module load tigge.wcoss_dell
-
-cd "${TIGGE_TOOLS}/scripts"
 ./runTigge.pl $time
