@@ -19,7 +19,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	
 	double* tiggeSoilMoistureValues = NULL;	
 	
-	char fileName[128];
+	char fileName[256];
 	
 	long ncepDiscipline, ncepParameterCategory, ncepParameterNumber, ncepLevel, ncepLevelValue;
 	int i, found1, found2;

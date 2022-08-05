@@ -23,7 +23,7 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 	
 	double* tiggeTimeIntegratedSurfaceSensibleHeatFluxValues = NULL;
 	
-	char fileName[128];
+	char fileName[256];
 	// check if the space was allocated correctly.
 	if(runningSum == NULL){
 		fprintf(stderr, "Failed to allocate memory for Time Integrated Surface Sensible Heat Flux.  Exiting...\n");

@@ -20,7 +20,7 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 	
 	double* tiggeTotalColumnWaterValues = NULL;	
 
-	char fileName[128];
+	char fileName[256];
 	
 	long ncepDiscipline, ncepParameterCategory, ncepParameterNumber, ncepLevel;
 	int i;

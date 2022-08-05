@@ -18,7 +18,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
     long temp = 0;
     int i;
 //    int errorCode;
-    char fileName[128];
+    char fileName[256];
 
 	// SIZE DEFS
 	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
