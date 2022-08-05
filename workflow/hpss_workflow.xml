@@ -4,24 +4,27 @@
 	<!ENTITY PSLOT "TIGGE_from_HPSS">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "12">
-	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
+	<!ENTITY TIGGE_PTMP "/scratch2/NCEPDEV/ensemble/noscrub/Walter.Kolczynski/ptmp/tigge">
 	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
 
-	<!ENTITY ACCOUNT "GEN-T2O">
-	<!ENTITY SCHEDULER "lsf">
-	<!ENTITY SHARED_QUEUE "dev2_shared">
-	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
+	<!ENTITY MACHINE "hera">
+	<!ENTITY ACCOUNT "fv3-cpu">
+	<!ENTITY SCHEDULER "slurm">
+	<!ENTITY COMPUTE_QUEUE "batch">
+	<!ENTITY TRANSFER_QUEUE "batch">
+	<!ENTITY COMPUTE_PART "hera">
+	<!ENTITY TRANSFER_PART "service">
 	<!ENTITY DATABASE "hpss.db">
 	<!ENTITY WORKFLOW "hpss_workflow.db">
 
-	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
-	<!ENTITY pull_from_hpss SYSTEM "tasks/pull_from_hpss.xml">
-	<!ENTITY link_input SYSTEM "tasks/link_input.xml">
-	<!ENTITY process_tigge SYSTEM "tasks/process_tigge.xml">
-	<!ENTITY transfer_output SYSTEM "tasks/transfer_output.xml">
-	<!ENTITY archive_output SYSTEM "tasks/archive_output.xml">
-	<!ENTITY handle_dead SYSTEM "tasks/handle_dead.xml">
-	<!ENTITY finalize SYSTEM "tasks/finalize.xml">
+	<!ENTITY ENV_VARS SYSTEM "env_vars.xml">
+	<!ENTITY pull_from_hpss SYSTEM "tasks/hera/pull_from_hpss.xml">
+	<!ENTITY link_input SYSTEM "tasks/hera/link_input.xml">
+	<!ENTITY process_tigge SYSTEM "tasks/hera/process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "tasks/hera/transfer_output.xml">
+	<!ENTITY archive_output SYSTEM "tasks/hera/archive_output.xml">
+	<!ENTITY handle_dead SYSTEM "tasks/hera/handle_dead.xml">
+	<!ENTITY finalize SYSTEM "tasks/hera/finalize.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
@@ -29,8 +32,8 @@
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
 	
 	<!-- List as many different cycles definitions as needed -->
-	<cycledef group="tigge">201901020600 201901020600 6:00:00</cycledef>
-	<cycledef group="tigge">201901030000 201901030000 6:00:00</cycledef>
+	<cycledef group="tigge">202201010000 202201010000 6:00:00</cycledef>
+	<!-- <cycledef group="tigge">201901030000 201901030000 6:00:00</cycledef> -->
 
 	&pull_from_hpss;
 	&link_input;
