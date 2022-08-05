@@ -2,7 +2,7 @@
 
 set +x
 if [[ -d /scratch1 ]]; then
-	source /apps/lmod/8.5.2/init/sh > /dev/null 2&>1
+	source /apps/lmod/8.5.2/init/sh > /dev/null 2>&1
 	export MACHINE="hera"
 
 elif [[ -d /lfs/h2 ]]; then
