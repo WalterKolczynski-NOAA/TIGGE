@@ -1,12 +1,14 @@
-#!/bin/sh
+#!/bin/bash
+
+source ../scripts/setup_machine.sh
 
 cd ..
 module purge
 module use modulefiles
-module load tigge.wcoss_dell
+module load build.${MACHINE}
 
 cd grib-api
-./configure --with-jasper="$JASPER_LIBDIR/.." --with-openjpeg="$PNG_LIBDIR" --prefix=$(pwd)
+./configure --with-jasper="$JASPER_LIBRARIES/.." --with-openjpeg="$PNG_LIBBRARIES" --prefix=$(pwd)
 make clean
 make
 make install
