@@ -15,7 +15,7 @@ cd "${TIGGE_OUTPUT}/archive"
 tarfile="tigge-kwbc-${time}.tar"
 remote="rzdm:/home/ftp/emc/ufs/global/ensemble/tigge/$tarfile"
 
-rsync -a -e 'ssh -C -F /home/Walter.Kolczynski/ssh_config' --partial-dir=.tmp $tarfile $remote
+rsync -a -P -e 'ssh -C -F /home/Walter.Kolczynski/ssh_config' --partial-dir=.tmp $tarfile $remote
 
 err=$?
 if (( err != 0 )); then

@@ -24,7 +24,7 @@
 	<!ENTITY transfer_output SYSTEM "tasks/hera/transfer_output.xml">
 	<!ENTITY archive_output SYSTEM "tasks/hera/archive_output.xml">
 	<!ENTITY handle_dead SYSTEM "tasks/hera/handle_dead.xml">
-	<!ENTITY finalize SYSTEM "tasks/hera/finalize.xml">
+	<!ENTITY cleanup SYSTEM "tasks/hera/cleanup.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
@@ -32,7 +32,7 @@
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
 	
 	<!-- List as many different cycles definitions as needed -->
-	<cycledef group="tigge">202201010000 202201010000 6:00:00</cycledef>
+	<cycledef group="tigge">202208200000 202209010000 6:00:00</cycledef>
 	<!-- <cycledef group="tigge">201901030000 201901030000 6:00:00</cycledef> -->
 
 	&pull_from_hpss;
@@ -40,11 +40,7 @@
 	&process_tigge;
 	&transfer_output;
 	&archive_output;
-	&handle_dead;
-	&finalize;
+	<!-- &handle_dead; -->
+	&cleanup;
 
 </workflow>
-
-
-
-

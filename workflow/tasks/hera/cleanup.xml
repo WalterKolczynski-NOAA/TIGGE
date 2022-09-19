@@ -1,7 +1,7 @@
-<task name="finalize" cycledefs="tigge" maxtries="1" final="true">
-	<jobname><cyclestr>tigge_finalize_@Y@m@d_@H</cyclestr></jobname>
+<task name="cleanup" cycledefs="tigge" maxtries="1" final="true">
+	<jobname><cyclestr>tigge_cleanup_@Y@m@d_@H</cyclestr></jobname>
 	<account>&ACCOUNT;</account>
-	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/finalize.log</cyclestr></join>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/cleanup.log</cyclestr></join>
 	<walltime>00:05:00</walltime>
 	<queue>&TRANSFER_QUEUE;</queue>
 	<partition>&TRANSFER_PART;</partition>
@@ -9,7 +9,7 @@
 	<memory>10M</memory>
 
 	&ENV_VARS;
-	<command><cyclestr>echo "TIGGE completed for @Y@m@d_@H"</cyclestr></command>
+	<command><cyclestr>../scripts/cleanup.sh @Y@m@d@H</cyclestr></command>
 	<dependency>
 		<and>
 			<taskdep task="archive_output"/>

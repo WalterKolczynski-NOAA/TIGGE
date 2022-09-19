@@ -26,7 +26,7 @@
 	<!ENTITY transfer_output SYSTEM "tasks/&MACHINE;/transfer_output.xml">
 	<!ENTITY archive_output SYSTEM "tasks/&MACHINE;/archive_output.xml">
 	<!ENTITY handle_dead SYSTEM "tasks/&MACHINE;/handle_dead.xml">
-	<!ENTITY finalize SYSTEM "tasks/&MACHINE;/finalize.xml">
+	<!ENTITY cleanup SYSTEM "tasks/&MACHINE;/cleanup.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
@@ -38,7 +38,7 @@
 	&transfer_output;
 	&archive_output;
 	&handle_dead;
-	&finalize;
+	&cleanup;
 </workflow>
 
 
