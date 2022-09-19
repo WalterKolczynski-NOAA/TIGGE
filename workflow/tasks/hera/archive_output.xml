@@ -4,6 +4,7 @@
 	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/archive_output.log</cyclestr></join>
 	<walltime>04:00:00</walltime>
 	<queue>&TRANSFER_QUEUE;</queue>
+	<partition>&TRANSFER_PART;</partition>
 	<nodes>1:ppn=1:tpp=1</nodes>
 	<memory>1000M</memory>
 
