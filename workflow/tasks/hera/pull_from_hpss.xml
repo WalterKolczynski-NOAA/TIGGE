@@ -6,7 +6,7 @@
 	<queue>&TRANSFER_QUEUE;</queue>
 	<partition>&TRANSFER_PART;</partition>
 	<nodes>1:ppn=1:tpp=1</nodes>
-	<memory>2048M</memory>
+	<memory>4048M</memory>
 
 	&ENV_VARS;
 	<command><cyclestr>../scripts/pull_from_hpss.sh @Y@m@d@H</cyclestr></command>
@@ -14,4 +14,7 @@
 		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead</cyclestr></sh>
 		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t finalize</cyclestr></sh>
 	</rewind>
+	<dependency>
+		<timedep><cyclestr offset="72:00:00">@Y@m@d@H@M</cyclestr></timedep>
+	</dependency>
 </task>
