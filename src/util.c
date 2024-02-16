@@ -216,7 +216,7 @@ int writeGribToFile(grib_handle* gh, char* filename)
 	if( gh == NULL || ! gh ) 
 		{ return(1); }
 
-	char totalFilename[128];
+	char totalFilename[256];
 	const void* buffer;
 	char* outputFilenamePrefix = getenv("TIGGE_OUTPUT");
 
@@ -259,7 +259,7 @@ int writeGribToFile(grib_handle* gh, char* filename)
 int generateFileName(int variableName, int yyyy, int mm, int dd, int hh, int fff, int em, char* fileName)
 	{
 	// can go back and return any error codes if need be.
-	//char fileName[128];
+	//char fileName[256];
 
 	char* prefix = "z_tigge_c";
 	char* cccc = "kwbc";

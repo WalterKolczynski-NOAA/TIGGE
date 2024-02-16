@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE workflow
+[
+	<!ENTITY PSLOT "TIGGE_from_Prod">
+	<!ENTITY CYCLE_THROTTLE "4">
+	<!ENTITY TASK_THROTTLE "12">
+	<!ENTITY SDATE "2021121306">
+	<!ENTITY EDATE "2022123118">
+	<!ENTITY INCYC "06">
+	<!ENTITY TIGGE_PTMP "/gpfs/dell6/ptmp/Walter.Kolczynski/tigge">
+	<!ENTITY GEFS_COM "/gpfs/dell4/nco/ops/com/gefs/prod">
+
+	<!ENTITY MACHINE "hera">
+	<!ENTITY ACCOUNT "fv3-cpu">
+	<!ENTITY SCHEDULER "slurm">
+	<!ENTITY COMPUTE_QUEUE "dev2_shared">
+	<!ENTITY TRANSFER_QUEUE "dev2_transfer">
+	<!ENTITY COMPUTE_PART "hera">
+	<!ENTITY TRANSFER_PART "service">
+	<!ENTITY DATABASE "prod.db">
+	<!ENTITY WORKFLOW "prod_workflow.db">
+
+	<!ENTITY ENV_VARS   SYSTEM "env_vars.xml">
+	<!ENTITY link_input SYSTEM "tasks/&MACHINE;/link_input.xml">
+	<!ENTITY process_tigge SYSTEM "tasks/&MACHINE;/process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "tasks/&MACHINE;/transfer_output.xml">
+	<!ENTITY archive_output SYSTEM "tasks/&MACHINE;/archive_output.xml">
+	<!ENTITY handle_dead SYSTEM "tasks/&MACHINE;/handle_dead.xml">
+	<!ENTITY cleanup SYSTEM "tasks/&MACHINE;/cleanup.xml">
+]>
+
+<workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
+	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
+
+	<cycledef group="tigge">&SDATE;00 &EDATE;00 &INCYC;:00:00</cycledef>
+	&link_input;
+	&process_tigge;
+	&transfer_output;
+	&archive_output;
+	&handle_dead;
+	&cleanup;
+</workflow>
+
+
+
+

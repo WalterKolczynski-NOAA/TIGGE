@@ -1,0 +1,21 @@
+<task name="process_tigge" cycledefs="tigge" maxtries="1">
+	<jobname><cyclestr>proc_tigge_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/process_tigge.log</cyclestr></join>
+	<walltime>06:30:00</walltime>
+	<queue>&COMPUTE_QUEUE;</queue>
+	<partition>&COMPUTE_PART;</partition>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<memory>4096M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/runTigge.sh @Y@m@d@H</cyclestr></command>
+	<dependency>
+		<taskdep task="link_input"/>
+	</dependency>
+	<rewind>
+		<sh><cyclestr>rm &TIGGE_PTMP;/output/runLatest.LOCKFILE.@Y@m@d@H</cyclestr></sh>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead,finalize</cyclestr></sh>
+	</rewind>
+
+</task>

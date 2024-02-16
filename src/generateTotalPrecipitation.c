@@ -24,7 +24,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 	double* tiggeTotalPrecipitationValues = NULL;	
 	
 
-	char fileName[128];
+	char fileName[256];
 	// check if the space was allocated correctly.
 	if(runningSum == NULL){
 		fprintf(stderr, "Failed to allocate memory for Total Precipitation.  Exiting...\n");

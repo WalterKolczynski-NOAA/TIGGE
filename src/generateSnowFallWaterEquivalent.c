@@ -20,7 +20,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	
 	double* tiggeSnowfallWaterEquivalentValues = NULL;	
 
-	char fileName[128];
+	char fileName[256];
 	
 	long ncepDiscipline, ncepParameterCategory, ncepParameterNumber;
 	int i;

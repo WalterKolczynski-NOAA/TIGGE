@@ -21,8 +21,8 @@ int main(int argc, char** argv)
 	char syear[5], smonth[3], sday[3], shour[3];
 	int i;
 	int status = -1;
-	char aFileName[128];
-	char bFileName[128];
+	char aFileName[256];
+	char bFileName[256];
 	time_t ensembleStart, ensembleEnd;
 	double elapsedEnsembleTime;
 

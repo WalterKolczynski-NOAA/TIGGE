@@ -1,0 +1,19 @@
+<task name="cleanup" cycledefs="tigge" maxtries="1" final="true">
+	<jobname><cyclestr>tigge_cleanup_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/cleanup.log</cyclestr></join>
+	<walltime>00:05:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<partition>&TRANSFER_PART;</partition>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<memory>10M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/cleanup.sh @Y@m@d@H</cyclestr></command>
+	<dependency>
+		<and>
+			<taskdep task="archive_output"/>
+			<taskdep task="transfer_output"/>
+		</and>
+	</dependency>
+</task>

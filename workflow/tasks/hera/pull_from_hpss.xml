@@ -1,0 +1,20 @@
+<task name="pull_from_hpss" cycledefs="tigge" maxtries="3">
+	<jobname><cyclestr>pull_@Y@m@d_@H</cyclestr></jobname>
+	<account>&ACCOUNT;</account>
+	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/pull_from_hpss.log</cyclestr></join>
+	<walltime>03:00:00</walltime>
+	<queue>&TRANSFER_QUEUE;</queue>
+	<partition>&TRANSFER_PART;</partition>
+	<nodes>1:ppn=1:tpp=1</nodes>
+	<memory>4048M</memory>
+
+	&ENV_VARS;
+	<command><cyclestr>../scripts/pull_from_hpss.sh @Y@m@d@H</cyclestr></command>
+	<rewind>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t handle_dead</cyclestr></sh>
+		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t finalize</cyclestr></sh>
+	</rewind>
+	<dependency>
+		<timedep><cyclestr offset="60:00:00">@Y@m@d@H@M</cyclestr></timedep>
+	</dependency>
+</task>

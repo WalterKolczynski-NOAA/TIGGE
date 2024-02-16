@@ -6,10 +6,10 @@
 
 TIGGE_TOOLS = $(CURDIR)/..
 
-CC = gcc
+CC = icc
 CFLAGS = -Wall -g
-MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -L$(JASPER_LIBDIR) -ljasper
-MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include -I$(JASPER_INC)
+MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -L$(JASPER_LIBRARIES) -ljasper
+MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include -I$(JASPER_INCLUDES)
 DIST_PREFIX = $(HOME)/tigge
 
 # Files Listed Here

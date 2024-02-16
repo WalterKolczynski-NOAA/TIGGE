@@ -39,7 +39,7 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 
 	double levValue;
 
-	char fileName[128];
+	char fileName[256];
 	long ncepDiscipline, ncepParameterCategory, ncepParameterNumber,ncepTypeOfFirstFixedSurface, ncepScaledValueOfFirstFixedSurface;
 	int i;
 	int errorCode;
