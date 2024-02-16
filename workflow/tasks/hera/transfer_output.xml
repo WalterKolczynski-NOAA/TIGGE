@@ -2,7 +2,7 @@
 	<jobname><cyclestr>tigge_xfer_@Y@m@d_@H</cyclestr></jobname>
 	<account>&ACCOUNT;</account>
 	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/transfer_output.log</cyclestr></join>
-	<walltime>03:00:00</walltime>
+	<walltime>06:00:00</walltime>
 	<queue>&TRANSFER_QUEUE;</queue>
 	<partition>&TRANSFER_PART;</partition>
 	<nodes>1:ppn=1:tpp=1</nodes>
