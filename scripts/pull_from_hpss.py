@@ -16,7 +16,10 @@ destination_pattern = '{com}/gefs.%Y%m%d/%H'
 
 
 def get_pgrb2a_pattern(time: datetime.datetime) -> str:
-	if datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
+	if time in [datetime.datetime(2023, 8, 6, 6), datetime.datetime(2023, 8, 10, 18)]:
+		# One-off manual archival by Eric
+		return time.strftime('/2year/NCEPDEV/emc-ensemble/Eric.Sinsky/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
+	elif datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
 		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
 	elif time < datetime.datetime(2020, 2, 26, 0):
 		return time.strftime('/NCEPPROD/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2a.tar')
@@ -42,7 +45,10 @@ def get_pgrb2a_pattern(time: datetime.datetime) -> str:
 
 
 def get_pgrb2b_pattern(time: datetime.datetime) -> str:
-	if datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
+	if time in [datetime.datetime(2023, 8, 6, 6)]:
+		# One-off manual archival by Eric
+		return time.strftime('/2year/NCEPDEV/emc-ensemble/Eric.Sinsky/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
+	elif datetime.datetime(2018, 8, 1, 0) <= time < datetime.datetime(2019, 8, 20, 0):
 		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com2_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
 	elif time < datetime.datetime(2020, 2, 26, 0):
 		return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/gpfs_dell2_nco_ops_com_gens_prod_gefs.%Y%m%d_%H.pgrb2b.tar')
