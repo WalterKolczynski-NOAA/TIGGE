@@ -15,6 +15,6 @@
 		<sh><cyclestr>rocotorewind -d &DATABASE; -w &WORKFLOW; -c @Y@m@d@H@S -t finalize</cyclestr></sh>
 	</rewind>
 	<dependency>
-		<timedep><cyclestr offset="72:00:00">@Y@m@d@H@M</cyclestr></timedep>
+		<timedep><cyclestr offset="60:00:00">@Y@m@d@H@M</cyclestr></timedep>
 	</dependency>
 </task>
