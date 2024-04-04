@@ -8,12 +8,12 @@
 
 $| = 1;
 
-if( !(scalar grep(/$ENV{'TIGGE_TOOLS'}\/bin/,@INC)) )
-    { push(@INC,"$ENV{'TIGGE_TOOLS'}/bin"); }
+# if( !(scalar grep(/$ENV{'TIGGE_TOOLS'}\/bin/,@INC)) )
+#     { push(@INC,"$ENV{'TIGGE_TOOLS'}/bin"); }
 
 use ncdcTigge 1.4 qw(runLatest cleanupLocation);
 
-#print(`echo "System Call test ok."`);
+print(`echo "System Call test ok."`);
 
 my $startTime = time;
 $err = ncdcTigge::runCycle( $ARGV[0] );

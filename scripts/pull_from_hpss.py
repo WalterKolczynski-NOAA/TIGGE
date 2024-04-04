@@ -35,11 +35,16 @@ def get_pgrb2a_pattern(time: datetime.datetime) -> str:
 			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.2_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
 		elif time.hour in [6, 18]:
 			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/xianwu.xue/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.2_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
-	elif time < datetime.datetime.now():
+	elif time < datetime.datetime(2024, 4, 1, 0):
 		if time.hour in [0, 12]:
 			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
 		elif time.hour in [6, 18]:
 			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/xianwu.xue/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
+	elif time < datetime.datetime.now():
+		if time.hour in [0, 12]:
+			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
+		elif time.hour in [6, 18]:
+			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/eric.sinsky/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2ap5.tar')
 	else:
 		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
 
@@ -64,11 +69,16 @@ def get_pgrb2b_pattern(time: datetime.datetime) -> str:
 			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.2_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
 		elif time.hour in [6, 18]:
 			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/xianwu.xue/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.2_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
-	elif time < datetime.datetime.now():
+	elif time < datetime.datetime(2024, 4, 1, 0):
 		if time.hour in [0, 12]:
 			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
 		elif time.hour in [6, 18]:
 			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/xianwu.xue/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
+	elif time < datetime.datetime.now():
+		if time.hour in [0, 12]:
+			return time.strftime('/NCEPPROD/2year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
+		elif time.hour in [6, 18]:
+			return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/eric.sinsky/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2bp5.tar')
 	else:
 		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
 

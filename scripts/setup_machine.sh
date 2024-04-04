@@ -5,6 +5,7 @@ if [[ -d /scratch1 ]]; then
 	if ( ! eval module help > /dev/null 2>&1 ); then
 		source /apps/lmod/lmod/init/bash
 	fi
+	export MODULEPATH="/apps/modules/modulefiles"
 	export LMOD_SYSTEM_DEFAULT_MODULES='contrib'
 	module reset
 	export MACHINE="hera"
