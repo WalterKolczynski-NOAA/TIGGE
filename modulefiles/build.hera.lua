@@ -1,9 +1,8 @@
-prepend_path("MODULEPATH", "/scratch2/NCEPDEV/nwprod/hpc-stack/libs/hpc-stack/modulefiles/stack")
+prepend_path("MODULEPATH", "/scratch1/NCEPDEV/nems/role.epic/spack-stack/spack-stack-1.6.0/envs/gsi-addon-dev-rocky8/install/modulefiles/Core")
 
-load("hpc/1.1.0")
-load("hpc-intel/18.0.5.274")
-load("jasper/2.0.25")
-load("png/1.6.35")
-load("cmake/3.20.1")
+load("stack-intel/2021.5.0")
+load("jasper/2.0.32")
+load("libpng/1.6.37")
+load("cmake/3.23.1")
 
-load("intelpython/3.6.8")
+load("python/3.11.6")

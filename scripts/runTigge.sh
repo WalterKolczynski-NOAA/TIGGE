@@ -5,12 +5,17 @@ source preamble.sh
 source setup_machine.sh
 
 time=${1}
-module use ../modulefiles  > /dev/null 2>&1
+module use ../modulefiles > /dev/null 2>&1
 module load run.${MACHINE} > /dev/null 2>&1
 
-export TIGGE_TOOLS=${TIGGE_TOOLS:-$(cd ..; pwd -P)}
+export TIGGE_TOOLS=${TIGGE_TOOLS:-$(
+	cd ..
+	pwd -P
+)}
 export TIGGE_INPUT=${TIGGE_INPUT}
 export TIGGE_OUTPUT=${TIGGE_OUTPUT}
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$TIGGE_TOOLS/grib-api/lib"
+
+export PERL5LIB="${PERL5LIB:-""}:${TIGGE_TOOLS}/scripts"
 
 ./runTigge.pl $time
