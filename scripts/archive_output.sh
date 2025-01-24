@@ -7,6 +7,7 @@ source setup_machine.sh
 time=${1}
 module use ../modulefiles > /dev/null 2>&1
 module load run.${MACHINE} > /dev/null 2>&1
+PATH="${PATH}:/apps/hpss_hera"
 
 year=$(echo $time | cut -c1-4)
 month=$(echo $time | cut -c5-6)
