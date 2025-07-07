@@ -6,27 +6,17 @@
 	<queue>&TRANSFER_QUEUE;</queue>
 	<partition>&TRANSFER_PART;</partition>
 	<nodes>1:ppn=1:tpp=1</nodes>
-	<memory>10M</memory>
+	<memory>100M</memory>
 
 	&ENV_VARS;
-	<command><cyclestr>mail -s "A TIGGE job for @Y@m@d_@H dead"</cyclestr> "Walter.Kolczynski@noaa.gov"</command>
+	<command><cyclestr>../scripts/handle_dead.sh @Y@m@d@H</cyclestr></command>
 	<dependency>
 		<or>
 			<taskdep task="pull_from_hpss" state="Dead"/>
 			<taskdep task="link_input" state="Dead"/>
 			<taskdep task="process_tigge" state="Dead"/>
-			<and>
-				<taskdep task="archive_output" state="Dead"/>
-				<taskdep task="transfer_output"/>
-			</and>
-			<and>
-				<taskdep task="archive_output"/>
-				<taskdep task="transfer_output" state="Dead"/>
-			</and>
-			<and>
-				<taskdep task="archive_output" state="Dead"/>
-				<taskdep task="transfer_output" state="Dead"/>
-			</and>
+			<taskdep task="transfer_output" state="Dead"/>
+			<taskdep task="archive_output" state="Dead"/>
 		</or>
 	</dependency>
 </task>

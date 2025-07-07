@@ -13,17 +13,24 @@ month=${time:4:2}
 
 cd "${TIGGE_OUTPUT}/archive"
 tarfile="tigge-kwbc-${time}.tar"
-remote="rzdm:/home/ftp/emc/ufs/global/ensemble/tigge"
+remote="s3://noaa-nws-global-pds/tigge"
+# expiration_date=$(date --utc -d "28 days" +"%Y-%m-%dT%H:%M%SZ")
 
+# Compute sha256 checksum and save
 sha256sum "${tarfile}" > "${tarfile}.sha256"
-rsync -a -P -e 'ssh -C -F /home/Walter.Kolczynski/ssh_config' --partial-dir=.tmp "${tarfile}" "${tarfile}.sha256" "${remote}/"
+
+# Transfer files to AWS S3 bucket
+# aws s3 cp "${tarfile}" "${tarfile}.sha256" "${remote}/" --expires "${expiration_date}"
+# aws s3 cp "${tarfile}" "${tarfile}.sha256" "${remote}/"
+aws s3 cp "${tarfile}" "${remote}/"
+aws s3 cp "${tarfile}.sha256" "${remote}/"
 
 err=$?
 if ((err != 0)); then
-	echo "FATAL ERROR from rsync: ${err}"
+	echo "FATAL ERROR from AWS: ${err}"
 	exit "${err}"
 else
-	echo "rsync to rzdm completed successfully"
+	echo "rsync to AWS completed successfully"
 fi
 
 exit "${err}"

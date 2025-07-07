@@ -4,7 +4,7 @@
 	<!ENTITY PSLOT "TIGGE_from_HPSS">
 	<!ENTITY CYCLE_THROTTLE "4">
 	<!ENTITY TASK_THROTTLE "40">
-	<!ENTITY TIGGE_PTMP "/scratch2/NCEPDEV/ensemble/noscrub/Walter.Kolczynski/ptmp/tigge">
+	<!ENTITY TIGGE_PTMP "/scratch1/NCEPDEV/global/glopara/tigge/temp">
 	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
 
 	<!ENTITY MACHINE "hera">
@@ -15,7 +15,7 @@
 	<!ENTITY COMPUTE_PART "hera">
 	<!ENTITY TRANSFER_PART "service">
 	<!ENTITY DATABASE "hpss.db">
-	<!ENTITY WORKFLOW "hpss_workflow.db">
+	<!ENTITY WORKFLOW "hpss.xml">
 
 	<!ENTITY ENV_VARS SYSTEM "env_vars.xml">
 	<!ENTITY pull_from_hpss SYSTEM "tasks/hera/pull_from_hpss.xml">
@@ -32,7 +32,8 @@
 	<log><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/tigge_workflow.log</cyclestr></log>
 	
 	<!-- List as many different cycles definitions as needed -->
-	<cycledef group="tigge">202501010000 202812310000 6:00:00</cycledef>
+	<!-- <cycledef group="tigge">202412090000 202412090000 06:00:00</cycledef> -->
+	<cycledef group="tigge">202501200000 202712310000 06:00:00</cycledef>
 
 	&pull_from_hpss;
 	&link_input;
