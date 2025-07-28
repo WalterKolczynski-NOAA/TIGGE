@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 set +x
-if [[ -d /scratch1 ]]; then
+if [[ -d /scratch4 ]]; then
 	if ( ! eval module help > /dev/null 2>&1 ); then
 		source /apps/lmod/lmod/init/bash
 	fi
