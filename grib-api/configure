@@ -18884,8 +18884,7 @@ then
   CFLAGS="$CFLAGS -I${jasper_dir}/include"
   LDFLAGS="$LDFLAGS -L${jasper_dir}/lib64"
 fi
-echo "jasper_dir = $jasper_dir"
-echo "LDFLAGS = $LDFLAGS"
+
 
 # Check whether --with-openjpeg was given.
 if test "${with_openjpeg+set}" = set; then :
