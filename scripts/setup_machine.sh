@@ -8,7 +8,7 @@ if [[ -d /scratch4 ]]; then
 	export MODULEPATH="/apps/modules/modulefiles"
 	export LMOD_SYSTEM_DEFAULT_MODULES='contrib'
 	module reset
-	export MACHINE="hera"
+	export MACHINE="ursa"
 
 elif [[ -d /lfs/h2 ]]; then
 	module reset

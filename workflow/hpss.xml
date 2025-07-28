@@ -7,7 +7,7 @@
 	<!ENTITY TIGGE_PTMP "/scratch4/NCEPDEV/ensemble/Eric.Sinsky/save/TIGGE/tigge_tmp">
 	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
 
-	<!ENTITY MACHINE "hera">
+	<!ENTITY MACHINE "ursa">
 	<!ENTITY ACCOUNT "fv3-cpu">
 	<!ENTITY SCHEDULER "slurm">
 	<!ENTITY COMPUTE_QUEUE "batch">
@@ -18,13 +18,13 @@
 	<!ENTITY WORKFLOW "hpss.xml">
 
 	<!ENTITY ENV_VARS SYSTEM "env_vars.xml">
-	<!ENTITY pull_from_hpss SYSTEM "tasks/hera/pull_from_hpss.xml">
-	<!ENTITY link_input SYSTEM "tasks/hera/link_input.xml">
-	<!ENTITY process_tigge SYSTEM "tasks/hera/process_tigge.xml">
-	<!ENTITY transfer_output SYSTEM "tasks/hera/transfer_output.xml">
-	<!ENTITY archive_output SYSTEM "tasks/hera/archive_output.xml">
-	<!ENTITY handle_dead SYSTEM "tasks/hera/handle_dead.xml">
-	<!ENTITY cleanup SYSTEM "tasks/hera/cleanup.xml">
+	<!ENTITY pull_from_hpss SYSTEM "tasks/ursa/pull_from_hpss.xml">
+	<!ENTITY link_input SYSTEM "tasks/ursa/link_input.xml">
+	<!ENTITY process_tigge SYSTEM "tasks/ursa/process_tigge.xml">
+	<!ENTITY transfer_output SYSTEM "tasks/ursa/transfer_output.xml">
+	<!ENTITY archive_output SYSTEM "tasks/ursa/archive_output.xml">
+	<!ENTITY handle_dead SYSTEM "tasks/ursa/handle_dead.xml">
+	<!ENTITY cleanup SYSTEM "tasks/ursa/cleanup.xml">
 ]>
 
 <workflow realtime="F" cyclethrottle="&CYCLE_THROTTLE;" scheduler="&SCHEDULER;" taskthrottle="&TASK_THROTTLE;">
