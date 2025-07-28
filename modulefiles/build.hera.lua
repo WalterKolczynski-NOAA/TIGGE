@@ -1,8 +1,13 @@
-prepend_path("MODULEPATH", "/scratch1/NCEPDEV/nems/role.epic/spack-stack/spack-stack-1.6.0/envs/gsi-addon-dev-rocky8/install/modulefiles/Core")
+prepend_path("MODULEPATH", "/apps/spack/modules/linux-rocky9-x86_64/Core")
 
-load("stack-intel/2021.5.0")
+load("intel-oneapi-compilers/2024.2.1")
+
+prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.2/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
+
+load("stack-oneapi/2024.2.1")
+load("intel-oneapi-compilers/2023.2.0")
 load("jasper/2.0.32")
 load("libpng/1.6.37")
-load("cmake/3.23.1")
+load("cmake/3.30.2")
 
-load("python/3.11.6")
+load("python/3.11")
