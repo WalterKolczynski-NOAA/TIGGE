@@ -8,8 +8,8 @@ TIGGE_TOOLS = $(CURDIR)/..
 
 CC = icc
 CFLAGS = -Wall -g
-MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -L$(JASPER_LIBRARIES) -ljasper
-MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include -I$(JASPER_INCLUDES)
+MYLIBS = $(LIBS) -lm -L$(TIGGE_TOOLS)/grib-api/lib -lgrib_api -L$(jasper_ROOT)/lib64 -ljasper
+MYINC = $(INC) -I$(TIGGE_TOOLS)/grib-api/include -I$(jasper_ROOT)/include
 DIST_PREFIX = $(HOME)/tigge
 
 # Files Listed Here
