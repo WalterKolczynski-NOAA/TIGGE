@@ -14,7 +14,7 @@ month=$(echo $time | cut -c5-6)
 
 cd "${TIGGE_OUTPUT}/archive"
 tarfile="tigge-kwbc-${time}.tar"
-hpss="/NCEPDEV/emc-ensemble/2year/Eric.Sinsky/tigge"
+hpss="/NCEPDEV/emc-ensemble/2year/tigge"
 
 hsi mkdir $hpss/$year
 hsi mkdir $hpss/$year/$month
