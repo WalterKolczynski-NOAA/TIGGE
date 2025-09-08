@@ -7,6 +7,6 @@ source setup_machine.sh
 time=${1}
 module use ../modulefiles > /dev/null 2>&1
 module load run.${MACHINE} > /dev/null 2>&1
-PATH="${PATH}:/apps/hpss_hera"
+PATH="${PATH}:/apps/hpss"
 
 ./pull_from_hpss.py $time

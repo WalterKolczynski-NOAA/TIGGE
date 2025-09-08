@@ -18879,11 +18879,10 @@ fi
 
 JASPER_DIR=$jasper_dir
 
-
 if test $jasper_dir != 'system'
 then
   CFLAGS="$CFLAGS -I${jasper_dir}/include"
-  LDFLAGS="$LDFLAGS -L${jasper_dir}/lib"
+  LDFLAGS="$LDFLAGS -L${jasper_dir}/lib64"
 fi
 
 
@@ -18898,7 +18897,7 @@ fi
 OPENJPEG_DIR=$openjpeg_dir
 
 
-if test $openjpeg_dir != 'system'
+if test "$openjpeg_dir" != 'system'
 then
   CFLAGS="$CFLAGS -I${openjpeg_dir}/include"
   LDFLAGS="$LDFLAGS -L${openjpeg_dir}/lib"

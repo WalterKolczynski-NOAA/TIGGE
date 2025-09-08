@@ -6,13 +6,11 @@ cd ..
 module purge
 module use modulefiles
 module load build.${MACHINE}
-
 cd grib-api
-./configure --with-jasper="$JASPER_LIBRARIES/.." --with-openjpeg="$PNG_LIBBRARIES" --prefix=$(pwd)
+./configure --with-jasper="${jasper_ROOT}" --with-openjpeg="${openjpeg_ROOT}" --prefix=$(pwd)
 make clean
 make
 make install
-
 cd ../src
 rm ../bin/ncdcTigge
 make clean

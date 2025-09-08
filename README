@@ -24,7 +24,7 @@ This will build and install the ECMWF grib_api library as well as the NCEP TIGGE
 executable. External library paths are loaded using LUA modules, with a single 
 module located in modulefiles that loads all of the necessary other modules.
 
-Currently the system is only configured to run on Hera. Porting to additional
+Currently the system is only configured to run on Ursa. Porting to additional
 systems will require an alterantive module file and modification of the build
 script to load the new module file. THIS MAY NOT BE BUILT ON WCOSS DUE TO THE
 INCLUSION OF grib_api!
